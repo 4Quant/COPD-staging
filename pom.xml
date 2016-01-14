@@ -292,7 +292,7 @@
                     <skipTests>true</skipTests>
                     -->
 
-                    <parallel>suites</parallel>
+                    <parallel>classes</parallel>
                     <threadCount>1</threadCount>
 
                 </configuration>

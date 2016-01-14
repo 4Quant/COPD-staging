@@ -19,6 +19,7 @@ import ij.gui.*;
 import java.awt.*;
 import ij.plugin.filter.*;
 
+
 public class USB_LungSegmentTJ implements PlugInFilter {
   // Constants
   static final String VERSION= "USB_LungSegmentTJ version 0.41";
@@ -117,25 +118,5 @@ public class USB_LungSegmentTJ implements PlugInFilter {
   private static void DEBUG(String msg) {if (VERBOSE) System.out.println(msg);}
   private static void DEBUG(String msg, java.lang.Object x) {if (VERBOSE) System.out.println(msg+String.valueOf(x));}
 
-  /** tester */
-  public static void main(String[] args) {
-      try {
-        double v0, v2, v1;
-        v0= Double.valueOf(args[0]);
-        v1= Double.valueOf(args[1]);
-        v2= Double.valueOf(args[2]);
-        // test range 
-        System.out.println("inRange="+String.valueOf(inRange(v0, v1,v2)));
-        System.out.println("isLung="+String.valueOf(isLung(v0)));
-        System.out.println("isTissue="+String.valueOf(isTissue(v0))); 
-      }
-      catch (ArrayIndexOutOfBoundsException e) {
-        System.out.println("usage: USB_LungSegmentTJ  val1 val2 val3");
-      }
-      catch (Exception e) {
-        System.out.println(e);
-      }
-
-  }
 
 }
