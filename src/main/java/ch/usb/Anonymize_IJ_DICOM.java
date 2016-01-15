@@ -1,3 +1,5 @@
+package ch.usb;
+
 import ij.*;
 import ij.process.*;
 import ij.gui.*;

@@ -1,4 +1,4 @@
-/** ImageJ Plugin
+package ch.usb; /** ImageJ Plugin
 *   Percentile Denisty PD 
 *   for multiple Percentile Values.
 *
@@ -10,7 +10,7 @@
 
 import ij.*;
 import ij.process.*;
-import ij.gui.*;
+
 import java.awt.*;
 import ij.plugin.filter.*;
 import ij.measure.ResultsTable;
@@ -18,7 +18,7 @@ import ij.measure.Calibration;
 
 public class USB_PDx implements PlugInFilter {
   // Constants
-  static final String VERSION= "USB_PDx version -380";
+  static final String VERSION= "ch.usb.USB_PDx version -380";
   static final int MAX_LUNG_HU= -380;
   static final int MIN_LUNG_HU= -1500;
   static final int DEBUG_MASK= 4096;

@@ -1,4 +1,4 @@
-/** ImageJ Plugin to Segment Lung Tissue from CT Image Data
+package ch.usb; /** ImageJ Plugin to Segment Lung Tissue from CT Image Data
 *
 *  Requires user interaction to chose a ROI containing at least
 *  one voxel of left and right lung in all slices, but not 
@@ -17,7 +17,7 @@ import ij.io.FileInfo;
 
 public class USB_SemiAutoLungSegmentTJ implements PlugInFilter {
   // Constants
-  static final String VERSION= "USB_SemiAutoLungSegmentTJ version 1.1";
+  static final String VERSION= "ch.usb.USB_SemiAutoLungSegmentTJ version 1.1";
   static final boolean VERBOSE= true;
   static final boolean DEBUG= false;
   static final boolean PREFILTER= true;
@@ -136,7 +136,7 @@ public class USB_SemiAutoLungSegmentTJ implements PlugInFilter {
         System.out.println("isTissue="+String.valueOf(isTissue(v0))); 
       }
       catch (ArrayIndexOutOfBoundsException e) {
-        System.out.println("usage: USB_SemiAutoLungSegmentTJ  val1 val2 val3");
+        System.out.println("usage: ch.usb.USB_SemiAutoLungSegmentTJ  val1 val2 val3");
       }
       catch (Exception e) {
         System.out.println(e);

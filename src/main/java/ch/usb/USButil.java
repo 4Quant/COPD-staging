@@ -1,4 +1,4 @@
-/** USButil
+package ch.usb; /** ch.usb.USButil
 *   Utility Class provides Static Utilities 
 *   for ImageJ specific to USB
 *

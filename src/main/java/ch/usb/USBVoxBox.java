@@ -1,4 +1,4 @@
-/** USBVoxBox
+package ch.usb; /** ch.usb.USBVoxBox
 *   
 *   Utilities for a group of Voxel values (without coordinates)
 *   Specific for USB CT data which is only in voxels
@@ -66,7 +66,7 @@ public class USBVoxBox {
 
    /** Debug utility to output internals of object */
    public String toString() {
-     StringBuffer buffy= new StringBuffer("USBVoxBox:");
+     StringBuffer buffy= new StringBuffer("ch.usb.USBVoxBox:");
      buffy.append("{");
      buffy.append("5%="+String.valueOf(getPD(5)+","));
      buffy.append("10%="+String.valueOf(getPD(10)+","));
@@ -78,7 +78,7 @@ public class USBVoxBox {
 
    /** Debug utility to output internals of object */
    public String dump() {
-     StringBuffer buffy= new StringBuffer("USBVoxBox:");
+     StringBuffer buffy= new StringBuffer("ch.usb.USBVoxBox:");
      sort();
      buffy.append(Arrays.toString(_data));
      return buffy.toString();
@@ -102,7 +102,7 @@ public class USBVoxBox {
        System.out.println(pd.dump());
      }
      catch (Exception e) {
-       System.out.println("usage: USBVoxBox val1 val2 val3 ...");
+       System.out.println("usage: ch.usb.USBVoxBox val1 val2 val3 ...");
      }
 
    }

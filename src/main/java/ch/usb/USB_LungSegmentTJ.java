@@ -1,4 +1,4 @@
-/** ImageJ Plugin to Segment Lung Tissue from CT Image Data
+package ch.usb; /** ImageJ Plugin to Segment Lung Tissue from CT Image Data
 *  
 *  Uses adhoc algorithm by TJ to identify lung:
 *  1. Eliminate extra-corporal solid (non-air) objects (CT table, bedding, random noise)
@@ -22,13 +22,14 @@ import ij.plugin.filter.*;
 
 public class USB_LungSegmentTJ implements PlugInFilter {
   // Constants
-  static final String VERSION= "USB_LungSegmentTJ version 0.41";
+  static final String VERSION= "ch.usb.USB_LungSegmentTJ version 0.41";
   static final boolean VERBOSE= true;
   static final boolean DEBUG= true;
-  static final double MAX_HU_TISSUE= 2047.0; 
-  static final double MIN_HU_TISSUE= -200.0;
-  static final double MAX_HU_LUNG= -380.0; 
-  static final double MIN_HU_LUNG= -1500.0;
+  public static final double MAX_HU_TISSUE= 2047.0;
+  public static final double MIN_HU_TISSUE= -200.0;
+  public static final double MAX_HU_LUNG= -380.0;
+  public static final double MIN_HU_LUNG= -1500.0;
+
   static final int LUNGLIKE_MASK= 1024; // distinctive non-tissue value 
   static final int NONLUNG_MASK= 4096; // set above bone with distinct number
   static final int EXCORP_MASK= 2048; // set above bone with distinct number

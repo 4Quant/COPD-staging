@@ -1,4 +1,6 @@
-/** Simple Debug Logger 
+package ch.usb;
+
+/** Simple Debug Logger
 *
 *  @author drTJRE.com
 *  @date  dec2015
