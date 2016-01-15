@@ -4,7 +4,9 @@ import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
 import ij.WindowManager;
+import ij.measure.Calibration;
 import ij.process.ShortProcessor;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -15,11 +17,37 @@ import static org.junit.Assert.*;
  */
 public class TestReadDICOMImage {
 
-    private final String tempDicomPath = "";
+    private final String tempDicomPath = "/Users/tomjre/Desktop/Stolz45Data/sampleLung2slices.tif";
+
+    /**
+     * storage for fetched image
+     */
+    private ImagePlus _imp;
+
+
+    @Before
+    public void testLoadSampleLungImage() {
+        System.out.println("@Test testLoadSampleLungImage() ");
+        IJ.open(tempDicomPath);
+        _imp= IJ.getImage();
+        assertNotNull("fetched image is null", _imp);
+    }
 
     @Test
     public void testReadCalibration() {
-        fail("Read in the calibration fo HU");
+        System.out.println("@Test testReadCalibration()");
+        Calibration cal= _imp.getCalibration();
+        assertNotNull("Calibration not found", cal);
+        System.out.println(cal);
+        System.out.println(cal.getCValue((int)0) );
+        System.out.println(cal.getCValue((int)4096) );
+        System.out.println(cal.getCoefficients()[0]);
+        System.out.println(cal.getCoefficients()[1]);
+        float[] ctable= cal.getCTable();
+        System.out.println(ctable.length);
+        for (int i=0;i<10;i++)
+            System.out.println(ctable[i]);
+
     }
 
     @Test

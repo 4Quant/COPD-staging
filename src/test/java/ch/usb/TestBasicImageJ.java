@@ -4,6 +4,7 @@ import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
 import ij.WindowManager;
+import ij.measure.Calibration;
 import ij.process.ShortProcessor;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -77,6 +78,9 @@ public class TestBasicImageJ {
 
         ImagePlus imp = new ImagePlus("test Image",createShortProcessorFromArray(
                 createTestImage((short) 100,(short) 0)));
+        Calibration cal= new Calibration();
+        //cal.setCTable();
+
         long pcount = imp.getStatistics().pixelCount;
         assertTrue("Right sized object "+pcount,pcount == (400 * 400));
 
@@ -91,16 +95,24 @@ public class TestBasicImageJ {
 
         assertNotNull("ImageJ should not be null",cInst);
 
-        ImagePlus ip = new ImagePlus("test Image",createShortProcessorFromArray(
+        ImagePlus imp = new ImagePlus("test Image",createShortProcessorFromArray(
                 createTestImage((short) 100, (short) 0)));
 
-        double preInvert = ip.getStatistics().mean;
+        float[] ctable= new float[65536];
+        float val= (float)-1024.0;
+        for (int i=0;i<65536;i++)
+            ctable[i]= val++;
 
+        Calibration cal= new Calibration();
+        cal.setCTable(ctable,"HU");
+
+        //TODO this is copy and pasted and should be replaced
+        double preInvert = imp.getStatistics().mean;
         assertTrue("Non-zero Mean: ",preInvert>0);
 
-        IJ.run(ip,"Invert","");
+        IJ.run(imp,"Invert","");
 
-        double postInvert = ip.getStatistics().mean;
+        double postInvert = imp.getStatistics().mean;
 
         assertTrue("Inversion Increased Mean "+preInvert+" -> "+postInvert, postInvert>=preInvert);
     }
