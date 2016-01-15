@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 /**
  * Created by tomjre on 14/01/16.
  */
-public class PracticeTests {
+public class TestBasicImageJ {
 
     static final private boolean headless = false;
 

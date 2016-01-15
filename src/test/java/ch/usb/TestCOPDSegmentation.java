@@ -12,7 +12,7 @@ import org.junit.BeforeClass;
  * @author mader
  *
  */
-public class COPDTests {
+public class TestCOPDSegmentation {
 	@BeforeClass
 	public static void setup() {
 	}
