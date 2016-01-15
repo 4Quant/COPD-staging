@@ -41,11 +41,9 @@ public class TestReadDICOMImage {
         System.out.println(cal);
         System.out.println(cal.getCValue((int)0) );
         System.out.println(cal.getCValue((int)4096) );
-        System.out.println(cal.getCoefficients()[0]);
-        System.out.println(cal.getCoefficients()[1]);
         float[] ctable= cal.getCTable();
         System.out.println(ctable.length);
-        for (int i=0;i<10;i++)
+        for (int i=0;i<3;i++)
             System.out.println(ctable[i]);
 
     }

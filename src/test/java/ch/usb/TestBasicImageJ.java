@@ -50,6 +50,36 @@ public class TestBasicImageJ {
         return is;
     }
 
+    public static final double MAX_HU_LUNG= -380.0;
+    public static final double MIN_HU_LUNG= -1500.0;
+    public static final double HU_OFFSET= -1024.0; // mapping int to HU simple shift
+
+    /**
+     * Generates an ImagePlus with Calibration equivalent to typical
+     * USB Thorax CT and
+     * Containing one square with pixel values in lung range.
+     *
+     * @return ImagePlus containing a square with
+     */
+    static ImagePlus createTestSingleSquareCTLungImagePlus() {
+        short fg= (short)(USB_LungSegmentTJ.MAX_HU_LUNG-HU_OFFSET);
+        short bg= (short)(USB_LungSegmentTJ.MIN_HU_TISSUE-HU_OFFSET);
+        ImagePlus imp = new ImagePlus("test Image",createShortProcessorFromArray(
+                createTestImage(fg,bg)));
+
+        // Setup lookup table to map integer to HU value and wrap in Calibration
+        float[] ctable= new float[65536];
+        float val= (float)HU_OFFSET;
+        for (int i=0;i<65536;i++)
+            ctable[i]= val++;
+        Calibration cal= new Calibration();
+        cal.setCTable(ctable,"HU");
+
+        imp.setCalibration(cal);
+
+        return imp;
+    }
+
     @BeforeClass
     public static void setupImageJ() {
         if(headless) ImageJ.main("--headless".split(" "));
@@ -91,20 +121,12 @@ public class TestBasicImageJ {
 
     @Test
     public void testCreateTestImage() {
+        System.out.println("@Test testCreateTestImage");
         ImageJ cInst = IJ.getInstance();
 
         assertNotNull("ImageJ should not be null",cInst);
 
-        ImagePlus imp = new ImagePlus("test Image",createShortProcessorFromArray(
-                createTestImage((short) 100, (short) 0)));
-
-        float[] ctable= new float[65536];
-        float val= (float)-1024.0;
-        for (int i=0;i<65536;i++)
-            ctable[i]= val++;
-
-        Calibration cal= new Calibration();
-        cal.setCTable(ctable,"HU");
+        ImagePlus imp = createTestSingleSquareCTLungImagePlus();
 
         //TODO this is copy and pasted and should be replaced
         double preInvert = imp.getStatistics().mean;
