@@ -22,7 +22,8 @@ public class TestBasicImageJ {
         int i = 0;
         int height = is.length;
         int width = is[0].length;
-        ShortProcessor shortprocessor = new ShortProcessor(width, height);
+        // create signed short processor
+        ShortProcessor shortprocessor = new ShortProcessor(width, height, false);
         short[] sp = (short[]) shortprocessor.getPixels();
         int h = 0;
         while (h < height) {
@@ -37,11 +38,12 @@ public class TestBasicImageJ {
         return shortprocessor;
     }
 
-    static final short[][] createTestImage() {
+    static final short[][] createTestImage(short fgValue, short bgValue) {
         short[][] is = new short[400][400];
-        for(int i = 50;i<100; i++) {
-            for(int j = 50;j<100;j++) {
-                is[i][j] = 100;
+        for(int i = 0;i<is.length; i++) {
+            for(int j = 0;j<is[0].length;j++) {
+                if ((i>50) & (i<100) & (j>50) & (j<100)) is[i][j] = fgValue;
+                else is[i][j] = bgValue;
             }
         }
         return is;
@@ -73,7 +75,8 @@ public class TestBasicImageJ {
     @Test
     public void testCreateShortImage() {
 
-        ImagePlus imp = new ImagePlus("test Image",createShortProcessorFromArray(createTestImage()));
+        ImagePlus imp = new ImagePlus("test Image",createShortProcessorFromArray(
+                createTestImage((short) 100,(short) 0)));
         long pcount = imp.getStatistics().pixelCount;
         assertTrue("Right sized object "+pcount,pcount == (400 * 400));
 
@@ -84,13 +87,13 @@ public class TestBasicImageJ {
 
     @Test
     public void testCreateTestImage() {
-
-
         ImageJ cInst = IJ.getInstance();
 
         assertNotNull("ImageJ should not be null",cInst);
 
-        ImagePlus ip = new ImagePlus("test Image",createShortProcessorFromArray(createTestImage()));
+        ImagePlus ip = new ImagePlus("test Image",createShortProcessorFromArray(
+                createTestImage((short) 100, (short) 0)));
+
         double preInvert = ip.getStatistics().mean;
 
         assertTrue("Non-zero Mean: ",preInvert>0);
@@ -101,6 +104,8 @@ public class TestBasicImageJ {
 
         assertTrue("Inversion Increased Mean "+preInvert+" -> "+postInvert, postInvert>=preInvert);
     }
+
+
 
     //@Test
     public void testPluginLoading() {

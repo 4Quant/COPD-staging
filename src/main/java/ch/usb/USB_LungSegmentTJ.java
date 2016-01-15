@@ -1,4 +1,5 @@
-package ch.usb; /** ImageJ Plugin to Segment Lung Tissue from CT Image Data
+package ch.usb;
+/** ImageJ Plugin to Segment Lung Tissue from CT Image Data
 *  
 *  Uses adhoc algorithm by TJ to identify lung:
 *  1. Eliminate extra-corporal solid (non-air) objects (CT table, bedding, random noise)
@@ -13,11 +14,12 @@ package ch.usb; /** ImageJ Plugin to Segment Lung Tissue from CT Image Data
 *  @date   nov2015
 */
 
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import java.awt.*;
-import ij.plugin.filter.*;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.plugin.filter.PlugInFilter;
+import ij.plugin.filter.RankFilters;
+import ij.process.FloodFiller;
+import ij.process.ImageProcessor;
 
 
 public class USB_LungSegmentTJ implements PlugInFilter {
@@ -36,25 +38,34 @@ public class USB_LungSegmentTJ implements PlugInFilter {
   static final double OUTLIER_PREFILTER_RADIUS= 5.0;
   static final double MEAN_PREFILTER_RADIUS= 5.0;
   static final boolean PREFILTER= true;
-
+    /**
+     * This is set during @link setup and used during @link run
+     */
   ImagePlus _imp;
 
-
+    /**
+     *
+     * @param arg
+     * @param imp
+     * @return
+     */
   public int setup(String arg, ImagePlus imp) {
     this._imp = imp;
     if (VERBOSE) System.out.println(VERSION);
     return DOES_16+STACK_REQUIRED;
   }
 
-  /** ImageJ plugin method called to perform actual work of segmenting lung
-  *  1. Eliminate extra-corporal solid (non-air) objects (CT table, bedding, random noise)
-  *     by large radius noise-filtering and blurring.
-  *  2. Threshold lung tissue and air (both inside and outside of body) to a LUNGLIKE_MASK 
-  *     all else to NONLUNG_MASK.
-  *  3. FloodFill extra-corporal LUNGLIKE_MASK (ie air) to EXTCORP_MASK.
-  *  4. Consider Remaining LUNGLIKE_MASK voxels as true lung (an aprox.; airways, and corporal air GI).
-  *  5. Restore original voxel values only where LUNGLIKE_MASK is set - rest set as NONLUNG.
-  */
+    /**
+     * ImageJ plugin method called to perform actual work of segmenting lung
+     *  1. Eliminate extra-corporal solid (non-air) objects (CT table, bedding, random noise)
+     *     by large radius noise-filtering and blurring.
+     *  2. Threshold lung tissue and air (both inside and outside of body) to a LUNGLIKE_MASK
+     *     all else to NONLUNG_MASK.
+     *  3. FloodFill extra-corporal LUNGLIKE_MASK (ie air) to EXTCORP_MASK.
+     *  4. Consider Remaining LUNGLIKE_MASK voxels as true lung (an aprox.; airways, and corporal air GI).
+     *  5. Restore original voxel values only where LUNGLIKE_MASK is set - rest set as NONLUNG.
+     * @param ip (NOT USED)
+     */
   public void run(ImageProcessor ip) {
     ImageStack istack= _imp.getStack();
     int numOfSlices= istack.getSize();
