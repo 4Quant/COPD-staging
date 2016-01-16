@@ -17,7 +17,12 @@ import static org.junit.Assert.*;
  */
 public class TestReadDICOMImage {
 
-    private final String tempDicomPath = "/Users/tomjre/Desktop/Stolz45Data/sampleLung2slices.tif";
+    final int mode = 0;
+    private String getTestImage() {
+        if(mode==0) return "/Users/tomjre/Desktop/Stolz45Data/sampleLung2slices.tif";
+        else return "sample.dcm";
+    }
+
 
     /**
      * storage for fetched image
@@ -28,7 +33,7 @@ public class TestReadDICOMImage {
     @Before
     public void testLoadSampleLungImage() {
         System.out.println("@Test testLoadSampleLungImage() ");
-        IJ.open(tempDicomPath);
+        IJ.open(getTestImage());
         _imp= IJ.getImage();
         assertNotNull("fetched image is null", _imp);
     }

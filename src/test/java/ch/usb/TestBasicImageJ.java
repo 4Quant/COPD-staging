@@ -14,6 +14,7 @@ import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.integer.ShortType;
+import net.imglib2.type.numeric.real.FloatType;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -26,7 +27,7 @@ import static org.junit.Assert.*;
  */
 public class TestBasicImageJ {
 
-    static final private boolean headless = false;
+    static final private boolean headless = true;
 
 
    static private ij.ImageJ imgj = null;
@@ -100,6 +101,8 @@ public class TestBasicImageJ {
     }
 
 
+
+
     /**
      * Generates an ImagePlus with Calibration equivalent to typical
      * USB Thorax CT and
@@ -118,7 +121,7 @@ public class TestBasicImageJ {
             ctable[i] = (float)HU_OFFSET+i;
         Calibration cal = new Calibration();
         cal.setCTable(ctable,"HU");
-
+        System.out.println("Is calibrated:"+cal.calibrated()+" "+cal);
 
         final short lungValue = (short) cal.getRawValue(HU_LUNG);
         final short bgValue =(short) cal.getRawValue(HU_NONLUNG);
@@ -140,16 +143,85 @@ public class TestBasicImageJ {
                 cr.get().set(bgValue);
         }
 
-
         ImagePlus imp = ImageJFunctions.wrap(emptyImage,"TestCTthorax");
 
         imp.setCalibration(cal);
+
+
 
         if(!headless) waitForIPClosing(imp);
 
         return imp;
     }
 
+    /**
+     * Test that the calibration table converts correctly
+     */
+    @Test
+    public void testCalibrationValues() {
+        // create coefficients
+
+        // Setup lookup table to map integer to HU value and wrap in Calibration
+        final float[] ctable = new float[65536];
+        for (int i=0;i<65536;i++)
+            ctable[i] = (float)HU_OFFSET+i;
+        Calibration cal = new Calibration();
+        cal.setCTable(ctable,"HU");
+        System.out.println("Is calibrated:"+cal.calibrated()+" "+cal);
+
+        final short lungValue = (short) cal.getRawValue(HU_LUNG);
+        final short bgValue =(short) cal.getRawValue(HU_NONLUNG);
+
+        assertEquals("The calibration table should shift by an offset",ctable[lungValue],HU_LUNG,0.1f);
+
+        assertEquals("The calibration table should shift by an offset",ctable[bgValue],HU_NONLUNG,0.1f);
+
+        assertEquals("Round trip should match up",cal.getCValue(cal.getRawValue(HU_LUNG)),
+                HU_LUNG,1f);
+
+        assertEquals("Round trip should match up",cal.getCValue(cal.getRawValue(HU_NONLUNG)),
+                HU_NONLUNG,1f);
+    }
+
+    /**
+     * Calculate basic statistics of the lung tissue from the image
+     */
+    public static class LungStatistics {
+        public final long lungVoxels;
+        public final long totalVoxels;
+        public final float maxVal;
+        public final float minVal;
+        public final double sumVal;
+        public final double meanVal;
+
+        public LungStatistics(Img<FloatType> ift) {
+            Cursor<FloatType> cr = ift.localizingCursor();
+            long lungVol = 0,totalVol=0;
+            float min=Float.MAX_VALUE,max=Float.MIN_VALUE;
+            double sum = 0.0;
+            long[] pos = new long[ift.numDimensions()];
+            while (cr.hasNext()) {
+                cr.fwd();
+                cr.localize(pos);
+                float curValue = cr.get().get();
+                totalVol++;
+                if((curValue>=HU_LUNG) & (curValue<=HU_NONLUNG)) lungVol++;
+                if(curValue>max) max = curValue;
+                if(curValue<min) min = curValue;
+                sum+=curValue;
+            }
+
+            lungVoxels = lungVol;
+            totalVoxels = totalVol;
+            maxVal = max;
+            minVal = min;
+            sumVal = sum;
+            meanVal = sum/totalVol;
+        }
+        public static LungStatistics fromImp(ImagePlus imp) {
+            return new LungStatistics(ImageJFunctions.convertFloat(imp));
+        }
+    }
 
     @Test
     public void testStringArgumentParsing() {
@@ -170,7 +242,6 @@ public class TestBasicImageJ {
 
     @Test
     public void testCreateShortImage() {
-
         ImagePlus imp = new ImagePlus("test Image",createShortProcessorFromArray(
                 createTestImage((short) 100,(short) 0)));
         Calibration cal= new Calibration();
@@ -189,18 +260,29 @@ public class TestBasicImageJ {
         System.out.println("@Test testCreateTestImage");
         ImagePlus imp = createMockCTLungImp(new SquareROI(20,20,40,40));
 
-        System.out.println();
+        System.out.println("Value at (25,25,0) " + imp.getProcessor().getPixelValue(25,25));
 
-        //TODO this is copy and pasted and should be replaced
-        double preInvert = imp.getStatistics().mean;
-        assertTrue("Non-zero Mean: ",preInvert>0);
+        System.out.println("Value at (1,1,0) " + imp.getProcessor().getPixelValue(1,1));
 
-        IJ.run(imp,"Invert","");
+        assertEquals(
+                "Calibration should be set and point 25,25 " +
+                        "should be inside the lung",
+                HU_LUNG,imp.getProcessor().getPixelValue(25,25));
+
+        assertEquals(
+                "Calibration should be set and point 1,1 " +
+                        "should be outside the lung",
+                HU_NONLUNG,imp.getProcessor().getPixelValue(1,1));
+
+        double preInvertLung = LungStatistics.fromImp(imp).meanVal;
+        assertTrue("Non-zero Mean: ",preInvertLung>0);
+
+        IJ.run(imp,"Invert","stack");
         if(!headless) waitForIPClosing(imp);
 
-        double postInvert = imp.getStatistics().mean;
-
-        assertTrue("Inversion Increased Mean "+preInvert+" -> "+postInvert, postInvert>=preInvert);
+        double postInvertLung = LungStatistics.fromImp(imp).meanVal;
+        System.out.println("Inversion Increased Mean "+preInvertLung+" -> "+postInvertLung);
+        assertTrue("Inversion Increased Mean "+preInvertLung+" -> "+postInvertLung, postInvertLung>=preInvertLung);
     }
 
     public static void waitForIPClosing(ImagePlus imp) {
@@ -212,8 +294,6 @@ public class TestBasicImageJ {
                 e.printStackTrace();
             }
         }
-
-
     }
 
 
