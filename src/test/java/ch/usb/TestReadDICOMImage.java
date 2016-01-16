@@ -25,11 +25,8 @@ public class TestReadDICOMImage {
     final int mode = 1;
     private String getTestImage() {
         String thoraxFile = this.getClass().getResource("/thoraxslice.tif").getPath();
-        System.out.println("Trying to load:"+thoraxFile);
-        if(mode==0) return "/Users/tomjre/Desktop/Stolz45Data/sampleLung2slices.tif";
-        else return thoraxFile;
+        return thoraxFile;
     }
-
 
     /**
      * storage for fetched image
@@ -84,7 +81,15 @@ public class TestReadDICOMImage {
     }
 
     @Test
-    public void createTextFileFromCalibration() throws IOException {
+    public void testCalculatingStatistics() {
+        TestBasicImageJ.LungStatistics lstats = TestBasicImageJ.LungStatistics.fromImp(_imp);
+        System.out.println("Lung Stats:"+lstats);
+        assertTrue("Lung Volume greater than 0", lstats.lungVoxels>0);
+        assertTrue("Mean Value greater than lung", lstats.meanVal>USB_LungSegmentTJ.MIN_HU_LUNG);
+    }
+
+    @Test
+    public void testTextFileFromCalibration() throws IOException {
         String calibrationName = File.createTempFile("calibration",".txt").getPath();
         System.out.println("Saving calibration as:"+calibrationName);
         IJ.run(_imp,"Calibrate...", "save="+calibrationName);

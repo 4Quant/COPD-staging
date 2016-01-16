@@ -112,8 +112,6 @@ public class TestBasicImageJ {
      * @return ImagePlus containing a square with
      */
     static ImagePlus createMockCTLungImp(LungROI cROI) {
-
-
         // create coefficients
 
         // Setup lookup table to map integer to HU value and wrap in Calibration

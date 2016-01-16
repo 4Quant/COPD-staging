@@ -108,6 +108,12 @@ public class TestCOPDSegmentation {
     }
 
 
+    @Test
+    public void testCOPDonDemoPatient() {
+        
+    }
+
+
 	/**
 	 * Test method for {@link tipl.scripts.UFEM#makePoros(tipl.formats.TImg)}.
 	 */
