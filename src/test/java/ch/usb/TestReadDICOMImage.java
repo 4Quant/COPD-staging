@@ -5,10 +5,15 @@ import ij.ImageJ;
 import ij.ImagePlus;
 import ij.WindowManager;
 import ij.measure.Calibration;
+import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+
 import static org.junit.Assert.*;
 
 
@@ -17,10 +22,12 @@ import static org.junit.Assert.*;
  */
 public class TestReadDICOMImage {
 
-    final int mode = 0;
+    final int mode = 1;
     private String getTestImage() {
+        String thoraxFile = this.getClass().getResource("/thoraxslice.tif").getPath();
+        System.out.println("Trying to load:"+thoraxFile);
         if(mode==0) return "/Users/tomjre/Desktop/Stolz45Data/sampleLung2slices.tif";
-        else return "sample.dcm";
+        else return thoraxFile;
     }
 
 
@@ -44,9 +51,12 @@ public class TestReadDICOMImage {
         Calibration cal= _imp.getCalibration();
         assertNotNull("Calibration not found", cal);
         System.out.println(cal);
-        System.out.println(cal.getCValue((int)0) );
-        System.out.println(cal.getCValue((int)4096) );
-        float[] ctable= cal.getCTable();
+        System.out.println("Value at 0:"+cal.getCValue((int)0) );
+        System.out.println("Value at 4096:"+cal.getCValue((int)4096) );
+
+
+
+        float[] ctable = cal.getCTable();
         System.out.println(ctable.length);
         for (int i=0;i<3;i++)
             System.out.println(ctable[i]);
@@ -54,8 +64,31 @@ public class TestReadDICOMImage {
     }
 
     @Test
+    public void testImageProcessorMatchesCalibration() {
+        Calibration cal= _imp.getCalibration();
+        ImageProcessor ip = _imp.getProcessor();
+        double pixVal = ip.getPixelValue(10,10);
+        double conVal = ip.getPixel(10,10);
+        assertNotEquals("Calibration should be changing the values",pixVal,conVal);
+
+        assertEquals("Looking up should be the same as the ImageProcessor",cal.getRawValue(pixVal), conVal,1.0);
+
+
+    }
+
+
+    @Test
     public void testImageRegion() {
+
         fail("Check that it is a CT and thorax");
+    }
+
+    @Test
+    public void createTextFileFromCalibration() throws IOException {
+        String calibrationName = File.createTempFile("calibration",".txt").getPath();
+        System.out.println("Saving calibration as:"+calibrationName);
+        IJ.run(_imp,"Calibrate...", "save="+calibrationName);
+
     }
 
 }

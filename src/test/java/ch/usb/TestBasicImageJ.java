@@ -32,12 +32,16 @@ public class TestBasicImageJ {
 
    static private ij.ImageJ imgj = null;
 
+    static private Calibration validCalibration = null;
+
 
     @BeforeClass
     public static void setupImageJ() {
         if(headless) ImageJ.main("--headless".split(" "));
         else ImageJ.main("".split(" "));
         imgj = IJ.getInstance();
+        IJ.open(TestBasicImageJ.class.getResource("/thoraxslice.tif").getPath());
+        validCalibration = IJ.getImage().getLocalCalibration();
     }
 
 
@@ -92,16 +96,13 @@ public class TestBasicImageJ {
 
         @Override
         public boolean isInside(long[] pos) {
-            if((pos[0]>x) & (pos[0]<(x+w)))
-                if((pos[1]>y) & (pos[0]<(y+h)))
+            if((pos[0]>x) && (pos[0]<=(x+w)))
+                if((pos[1]>y) && (pos[1]<=(y+h)))
                     return true;
 
             return false;
         }
     }
-
-
-
 
     /**
      * Generates an ImagePlus with Calibration equivalent to typical
@@ -144,10 +145,12 @@ public class TestBasicImageJ {
         }
 
         ImagePlus imp = ImageJFunctions.wrap(emptyImage,"TestCTthorax");
+        System.out.println("synt: "+cal+"\nreal: "+validCalibration);
 
-        imp.setCalibration(cal);
+        //TODO figure out why this does not work
+        // imp.setCalibration(cal);
 
-
+        imp.setCalibration(validCalibration);
 
         if(!headless) waitForIPClosing(imp);
 
@@ -189,23 +192,23 @@ public class TestBasicImageJ {
     public static class LungStatistics {
         public final long lungVoxels;
         public final long totalVoxels;
-        public final float maxVal;
-        public final float minVal;
+        public final double maxVal;
+        public final double minVal;
         public final double sumVal;
         public final double meanVal;
 
-        public LungStatistics(Img<FloatType> ift) {
+        public LungStatistics(Img<FloatType> ift, double offset) {
             Cursor<FloatType> cr = ift.localizingCursor();
             long lungVol = 0,totalVol=0;
-            float min=Float.MAX_VALUE,max=Float.MIN_VALUE;
+            double min=Float.MAX_VALUE,max=Float.MIN_VALUE;
             double sum = 0.0;
             long[] pos = new long[ift.numDimensions()];
             while (cr.hasNext()) {
                 cr.fwd();
                 cr.localize(pos);
-                float curValue = cr.get().get();
+                double curValue = cr.get().get()+offset;
                 totalVol++;
-                if((curValue>=HU_LUNG) & (curValue<=HU_NONLUNG)) lungVol++;
+                if((curValue>=USB_LungSegmentTJ.MIN_HU_LUNG) && (curValue<=USB_LungSegmentTJ.MAX_HU_LUNG)) lungVol++;
                 if(curValue>max) max = curValue;
                 if(curValue<min) min = curValue;
                 sum+=curValue;
@@ -219,7 +222,14 @@ public class TestBasicImageJ {
             meanVal = sum/totalVol;
         }
         public static LungStatistics fromImp(ImagePlus imp) {
-            return new LungStatistics(ImageJFunctions.convertFloat(imp));
+
+            return new LungStatistics(ImageJFunctions.convertFloat(imp),
+                    imp.getCalibration().getCValue(0));
+        }
+        @Override
+        public String toString() {
+            return  lungVoxels+" "+totalVoxels+" "+
+            minVal+" "+maxVal+" "+meanVal;
         }
     }
 
@@ -228,9 +238,9 @@ public class TestBasicImageJ {
         double v0, v2, v1;
         String[] args = "-487 2.0 5".split(" ");
 
-        v0= Double.valueOf(args[0]);
-        v1= Double.valueOf(args[1]);
-        v2= Double.valueOf(args[2]);
+        v0 = Double.valueOf(args[0]);
+        v1 = Double.valueOf(args[1]);
+        v2 = Double.valueOf(args[2]);
         // test ranges
         assertTrue( "Should be inside the lung range",
                 USB_LungSegmentTJ.inRange(v0, USB_LungSegmentTJ.MIN_HU_LUNG, USB_LungSegmentTJ.MAX_HU_LUNG)
@@ -267,15 +277,21 @@ public class TestBasicImageJ {
         assertEquals(
                 "Calibration should be set and point 25,25 " +
                         "should be inside the lung",
-                HU_LUNG,imp.getProcessor().getPixelValue(25,25));
+                HU_LUNG,imp.getProcessor().getPixelValue(25,25),1.0f);
 
         assertEquals(
                 "Calibration should be set and point 1,1 " +
                         "should be outside the lung",
-                HU_NONLUNG,imp.getProcessor().getPixelValue(1,1));
+                HU_NONLUNG,imp.getProcessor().getPixelValue(1,1),1.0f);
 
         double preInvertLung = LungStatistics.fromImp(imp).meanVal;
+        System.out.println("Lung Statistics:"+LungStatistics.fromImp(imp));
         assertTrue("Non-zero Mean: ",preInvertLung>0);
+        assertEquals("Area matches given image area",512*512*3,
+                LungStatistics.fromImp(imp).totalVoxels, 1.0);
+        assertEquals("Area matches given lung area",40*40.0*3,
+                LungStatistics.fromImp(imp).lungVoxels, 1.0);
+
 
         IJ.run(imp,"Invert","stack");
         if(!headless) waitForIPClosing(imp);
