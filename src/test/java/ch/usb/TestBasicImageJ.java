@@ -1,19 +1,24 @@
 package ch.usb;
 
+
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
-import ij.ImageStack;
-import ij.WindowManager;
+
+import ij.gui.WaitForUserDialog;
 import ij.measure.Calibration;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
+import net.imglib2.Cursor;
+import net.imglib2.img.Img;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.type.numeric.integer.ShortType;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import ij.gui.WaitForUserDialog;
 
-import java.awt.*;
 
 
 /**
@@ -21,9 +26,21 @@ import java.awt.*;
  */
 public class TestBasicImageJ {
 
-    static final private boolean headless = true;
+    static final private boolean headless = false;
 
-    static final ShortProcessor createShortProcessorFromArray(short[][] is) {
+
+   static private ij.ImageJ imgj = null;
+
+
+    @BeforeClass
+    public static void setupImageJ() {
+        if(headless) ImageJ.main("--headless".split(" "));
+        else ImageJ.main("".split(" "));
+        imgj = IJ.getInstance();
+    }
+
+
+    static ShortProcessor createShortProcessorFromArray(short[][] is) {
         int i = 0;
         int height = is.length;
         int width = is[0].length;
@@ -43,7 +60,7 @@ public class TestBasicImageJ {
         return shortprocessor;
     }
 
-    static final short[][] createTestImage(short fgValue, short bgValue) {
+    static short[][] createTestImage(short fgValue, short bgValue) {
         short[][] is = new short[400][400];
         for(int i = 0;i<is.length; i++) {
             for(int j = 0;j<is[0].length;j++) {
@@ -59,6 +76,30 @@ public class TestBasicImageJ {
     public static final double HU_OFFSET= -1024.0; // mapping int to HU simple shift
 
 
+    static protected interface LungROI {
+        boolean isInside(long[] pos);
+    }
+
+    static protected class SquareROI implements LungROI {
+        final public int x,y,w,h;
+        public SquareROI(int ix, int iy, int iw, int ih) {
+            x = ix;
+            y = iy;
+            w = iw;
+            h = ih;
+        }
+
+        @Override
+        public boolean isInside(long[] pos) {
+            if((pos[0]>x) & (pos[0]<(x+w)))
+                if((pos[1]>y) & (pos[0]<(y+h)))
+                    return true;
+
+            return false;
+        }
+    }
+
+
     /**
      * Generates an ImagePlus with Calibration equivalent to typical
      * USB Thorax CT and
@@ -66,56 +107,49 @@ public class TestBasicImageJ {
      *
      * @return ImagePlus containing a square with
      */
-    static ImagePlus createMockCTLungImp() {
-        int w=512,h=512, numOfSlices=3;
-        ImagePlus imp = new ImagePlus("TestCTthorax",createShortProcessorFromArray(
-                createTestImage((short) 100,(short) 0)));
-        ImageStack istack= new ImageStack(w,h,numOfSlices);
-        ImagePlus imp= new ImagePlus("TestCTthorax", istack);
-        Rectangle rec= new Rectangle(w,h);
+    static ImagePlus createMockCTLungImp(LungROI cROI) {
 
+
+        // create coefficients
 
         // Setup lookup table to map integer to HU value and wrap in Calibration
-        float[] ctable= new float[65536];
-        float val= (float)HU_OFFSET;
+        final float[] ctable = new float[65536];
         for (int i=0;i<65536;i++)
-            ctable[i]= val++;
-        Calibration cal= new Calibration();
+            ctable[i] = (float)HU_OFFSET+i;
+        Calibration cal = new Calibration();
         cal.setCTable(ctable,"HU");
+
+
+        final short lungValue = (short) cal.getRawValue(HU_LUNG);
+        final short bgValue =(short) cal.getRawValue(HU_NONLUNG);
+
+        // build image
+        int w=512,h=512, numOfSlices=3;
+        ArrayImgFactory<ShortType> aif = new ArrayImgFactory<ShortType>();
+        Img<ShortType> emptyImage = aif.create(new long[]{w,h,numOfSlices},new ShortType());
+
+        Cursor<ShortType> cr = emptyImage.localizingCursor();
+
+        long[] pos = new long[emptyImage.numDimensions()];
+        while (cr.hasNext()) {
+            cr.fwd();
+            cr.localize(pos);
+            if (cROI.isInside(pos))
+                cr.get().set(lungValue);
+            else
+                cr.get().set(bgValue);
+        }
+
+
+        ImagePlus imp = ImageJFunctions.wrap(emptyImage,"TestCTthorax");
 
         imp.setCalibration(cal);
 
-        // fill image with non-lung background
-        for (int sliceN=1;sliceN<=numOfSlices;sliceN++) {
-            ImageProcessor ips = istack.getProcessor(sliceN);
-            for (int x = rec.x; x < (rec.x + rec.width); x++) {
-                for (int y = rec.y; y < (rec.y + rec.height); y++) {
-                    ips.putPixelValue(x,y,(double)HU_NONLUNG);
-                }
-            }
-        } // next slice in line - step down:)
-        // setup a few rectangles with lung
-        int lx1= 100, lx2= 200, ly1= 100, ly2= 200; // limits of lung
-        int ls1= 2, ls2= 2; // slices to contain lung (inclusive)
-
-        for (int sliceN=ls1;sliceN<=ls2;sliceN++) {
-                ImageProcessor ips= istack.getProcessor(sliceN);
-                for (int x=lx1; x<lx2; x++) {
-                    for (int y=ly1; y<ly2; y++) {
-                        ips.putPixelValue(x,y,(double)HU_LUNG);
-                    }
-                }
-        } // next slice in line - step down:)
-
+        if(!headless) waitForIPClosing(imp);
 
         return imp;
     }
 
-    @BeforeClass
-    public static void setupImageJ() {
-        if(headless) ImageJ.main("--headless".split(" "));
-        else ImageJ.main("".split(" "));
-    }
 
     @Test
     public void testStringArgumentParsing() {
@@ -153,30 +187,38 @@ public class TestBasicImageJ {
     @Test
     public void testCreateTestImage() {
         System.out.println("@Test testCreateTestImage");
-        ImageJ cInst = IJ.getInstance();
-
-        assertNotNull("ImageJ should not be null",cInst);
-
-        ImagePlus imp = createMockCTLungImp();
+        ImagePlus imp = createMockCTLungImp(new SquareROI(20,20,40,40));
 
         System.out.println();
-
 
         //TODO this is copy and pasted and should be replaced
         double preInvert = imp.getStatistics().mean;
         assertTrue("Non-zero Mean: ",preInvert>0);
 
         IJ.run(imp,"Invert","");
-        //ij.gui.WaitForUserDialog("wait");
+        if(!headless) waitForIPClosing(imp);
 
         double postInvert = imp.getStatistics().mean;
 
         assertTrue("Inversion Increased Mean "+preInvert+" -> "+postInvert, postInvert>=preInvert);
     }
 
+    public static void waitForIPClosing(ImagePlus imp) {
+        imp.show("Close to continue...");
+        while(imp.isVisible()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
 
-    //@Test
+    }
+
+
+    @Ignore
+    @Test
     public void testPluginLoading() {
         //TODO fix plugin loading later
         IJ.run("ch.usb.USB_LungSegmentTJ");

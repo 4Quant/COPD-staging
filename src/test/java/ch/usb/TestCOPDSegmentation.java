@@ -19,6 +19,7 @@ import java.awt.image.ImageFilter;
  *
  */
 public class TestCOPDSegmentation {
+
     public static final boolean headless = false;
     @BeforeClass
     public static void setupImageJ() {

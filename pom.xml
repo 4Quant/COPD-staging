@@ -42,8 +42,7 @@
 
 
     <dependencies>
-
-        <!-- ImageJ 1 dependencies -->
+        <!-- imagej at run time -->
         <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>ij</artifactId>
@@ -60,6 +59,13 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- ImageJ2 dependencies (at testing time) -->
+        <dependency>
+            <groupId>net.imagej</groupId>
+            <artifactId>imagej</artifactId>
             <scope>test</scope>
         </dependency>
 
