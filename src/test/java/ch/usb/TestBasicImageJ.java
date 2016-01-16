@@ -3,13 +3,17 @@ package ch.usb;
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.WindowManager;
 import ij.measure.Calibration;
+import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import ij.gui.WaitForUserDialog;
 
+import java.awt.*;
 
 
 /**
@@ -50,9 +54,10 @@ public class TestBasicImageJ {
         return is;
     }
 
-    public static final double MAX_HU_LUNG= -380.0;
-    public static final double MIN_HU_LUNG= -1500.0;
+    public static final double HU_LUNG= -500.0;
+    public static final double HU_NONLUNG= 100.0;
     public static final double HU_OFFSET= -1024.0; // mapping int to HU simple shift
+
 
     /**
      * Generates an ImagePlus with Calibration equivalent to typical
@@ -61,11 +66,14 @@ public class TestBasicImageJ {
      *
      * @return ImagePlus containing a square with
      */
-    static ImagePlus createTestSingleSquareCTLungImagePlus() {
-        short fg= (short)(USB_LungSegmentTJ.MAX_HU_LUNG-HU_OFFSET);
-        short bg= (short)(USB_LungSegmentTJ.MIN_HU_TISSUE-HU_OFFSET);
-        ImagePlus imp = new ImagePlus("test Image",createShortProcessorFromArray(
-                createTestImage(fg,bg)));
+    static ImagePlus createMockCTLungImp() {
+        int w=512,h=512, numOfSlices=3;
+        ImagePlus imp = new ImagePlus("TestCTthorax",createShortProcessorFromArray(
+                createTestImage((short) 100,(short) 0)));
+        ImageStack istack= new ImageStack(w,h,numOfSlices);
+        ImagePlus imp= new ImagePlus("TestCTthorax", istack);
+        Rectangle rec= new Rectangle(w,h);
+
 
         // Setup lookup table to map integer to HU value and wrap in Calibration
         float[] ctable= new float[65536];
@@ -76,6 +84,29 @@ public class TestBasicImageJ {
         cal.setCTable(ctable,"HU");
 
         imp.setCalibration(cal);
+
+        // fill image with non-lung background
+        for (int sliceN=1;sliceN<=numOfSlices;sliceN++) {
+            ImageProcessor ips = istack.getProcessor(sliceN);
+            for (int x = rec.x; x < (rec.x + rec.width); x++) {
+                for (int y = rec.y; y < (rec.y + rec.height); y++) {
+                    ips.putPixelValue(x,y,(double)HU_NONLUNG);
+                }
+            }
+        } // next slice in line - step down:)
+        // setup a few rectangles with lung
+        int lx1= 100, lx2= 200, ly1= 100, ly2= 200; // limits of lung
+        int ls1= 2, ls2= 2; // slices to contain lung (inclusive)
+
+        for (int sliceN=ls1;sliceN<=ls2;sliceN++) {
+                ImageProcessor ips= istack.getProcessor(sliceN);
+                for (int x=lx1; x<lx2; x++) {
+                    for (int y=ly1; y<ly2; y++) {
+                        ips.putPixelValue(x,y,(double)HU_LUNG);
+                    }
+                }
+        } // next slice in line - step down:)
+
 
         return imp;
     }
@@ -126,13 +157,17 @@ public class TestBasicImageJ {
 
         assertNotNull("ImageJ should not be null",cInst);
 
-        ImagePlus imp = createTestSingleSquareCTLungImagePlus();
+        ImagePlus imp = createMockCTLungImp();
+
+        System.out.println();
+
 
         //TODO this is copy and pasted and should be replaced
         double preInvert = imp.getStatistics().mean;
         assertTrue("Non-zero Mean: ",preInvert>0);
 
         IJ.run(imp,"Invert","");
+        //ij.gui.WaitForUserDialog("wait");
 
         double postInvert = imp.getStatistics().mean;
 
