@@ -45,9 +45,9 @@ public class USB_LungSegment implements PlugInFilter {
 
     /**
      *
-     * @param arg
-     * @param imp
-     * @return
+     * @param arg - parameter passing
+     * @param imp - image to work on
+     * @return alert if not of proper image type
      */
   public int setup(String arg, ImagePlus imp) {
     this._imp = imp;
@@ -73,16 +73,16 @@ public class USB_LungSegment implements PlugInFilter {
     for (int sliceN=1;sliceN<=numOfSlices;sliceN++) {
       ImageProcessor ips= istack.getProcessor(sliceN); // process one slice at a time
       int[][] unfilteredVoxData= ips.getIntArray(); // original voxel data
-     
+
       int width= _imp.getWidth();
       int height= _imp.getHeight();
-    
+
       // FILTERING
-      // First filter image to eliminate extra-corporal outliers 
+      // First filter image to eliminate extra-corporal outliers
       // which might be mistaken as tissue (bedding, table, specks):
       if (PREFILTER) {
       RankFilters rf= new RankFilters();
-        rf.rank(ips, OUTLIER_PREFILTER_RADIUS, RankFilters.OUTLIERS, 0, (float)50.0);  
+        rf.rank(ips, OUTLIER_PREFILTER_RADIUS, RankFilters.OUTLIERS, 0, (float)50.0);
         rf.rank(ips, MEAN_PREFILTER_RADIUS, RankFilters.MEAN);
       }
 
@@ -91,7 +91,7 @@ public class USB_LungSegment implements PlugInFilter {
       // will provide solid regions for facilitating next flood-fill step.
       for (int x=0; x<width; x++) {
         for (int y=0; y<height; y++) {
-          val= Double.valueOf(ips.getPixelValue(x,y));
+          val= ips.getPixelValue(x,y);
           if (isLung(val)) ips.putPixel(x,y,LUNGLIKE_MASK);
           else ips.putPixel(x,y,NONLUNG_MASK);
         }
@@ -99,20 +99,22 @@ public class USB_LungSegment implements PlugInFilter {
       // Flood Fill extra-corporal touching image outer edge with a NON Lung mask
       ips.setValue(EXCORP_MASK);
       FloodFiller floodFiller= new FloodFiller(ips);
-      int xleft= 0, xright= width-1;
-      int ytop= 0, ybottom= width-1;
-      for (int x=0; x<width; x++) {  // walk top end bottom edges
-          if (ips.getPixel(x,ytop)==LUNGLIKE_MASK) floodFiller.fill(x,ytop);
-          if (ips.getPixel(x,ybottom)==LUNGLIKE_MASK) floodFiller.fill(x,ybottom);
+      int boarderWidth= 3;
+      for (int ie=0;ie<boarderWidth;ie++) {
+          int xleft = ie, xright = width - 1-ie;
+          int ytop = ie, ybottom = height - 1-ie;
+          for (int x = 0; x < width; x++) {  // walk top end bottom edges
+              if (ips.getPixel(x, ytop) == LUNGLIKE_MASK) floodFiller.fill(x, ytop);
+              if (ips.getPixel(x, ybottom) == LUNGLIKE_MASK) floodFiller.fill(x, ybottom);
+          }
+          for (int y = 0; y < height; y++) {  // walk sides
+              if (ips.getPixel(xleft, y) == LUNGLIKE_MASK) floodFiller.fill(xleft, y);
+              if (ips.getPixel(xright, ybottom) == LUNGLIKE_MASK) floodFiller.fill(xright, y);
+          }
       }
-      for (int y=0; y<height; y++) {  // walk sides
-          if (ips.getPixel(xleft,y)==LUNGLIKE_MASK) floodFiller.fill(xleft,y);
-          if (ips.getPixel(xright,ybottom)==LUNGLIKE_MASK) floodFiller.fill(xright,y);
-      }
-
       // Restore Original Data ONLY in surviving LUNGLIKE_MASKed
-      for (int x=xleft; x<xright; x++) {
-        for (int y=ytop; y<ybottom; y++) {
+      for (int x=0; x<width; x++) {
+        for (int y=0; y<height; y++) {
           ival= ips.getPixel(x,y);
   	  if (ival!=LUNGLIKE_MASK) unfilteredVoxData[x][y]= NONLUNG_MASK;
         }
