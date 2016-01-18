@@ -5,9 +5,7 @@ import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
 
-import ij.gui.WaitForUserDialog;
 import ij.measure.Calibration;
-import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 import net.imglib2.Cursor;
 import net.imglib2.img.Img;
@@ -206,7 +204,7 @@ public class TestBasicImageJ {
                 cr.localize(pos);
                 double curValue = cr.get().get()+offset;
                 totalVol++;
-                if((curValue>=USB_LungSegmentTJ.MIN_HU_LUNG) && (curValue<=USB_LungSegmentTJ.MAX_HU_LUNG)) lungVol++;
+                if((curValue>= USB_LungSegment.MIN_HU_LUNG) && (curValue<= USB_LungSegment.MAX_HU_LUNG)) lungVol++;
                 if(curValue>max) max = curValue;
                 if(curValue<min) min = curValue;
                 sum+=curValue;
@@ -241,10 +239,10 @@ public class TestBasicImageJ {
         v2 = Double.valueOf(args[2]);
         // test ranges
         assertTrue( "Should be inside the lung range",
-                USB_LungSegmentTJ.inRange(v0, USB_LungSegmentTJ.MIN_HU_LUNG, USB_LungSegmentTJ.MAX_HU_LUNG)
+                USB_LungSegment.inRange(v0, USB_LungSegment.MIN_HU_LUNG, USB_LungSegment.MAX_HU_LUNG)
         );
-        assertTrue( "Test lung values", USB_LungSegmentTJ.isLung(v0) );
-        assertTrue( "Test tissue values", USB_LungSegmentTJ.isTissue(v1) );
+        assertTrue( "Test lung values", USB_LungSegment.isLung(v0) );
+        assertTrue( "Test tissue values", USB_LungSegment.isTissue(v1) );
 
     }
 
@@ -315,7 +313,7 @@ public class TestBasicImageJ {
     @Test
     public void testPluginLoading() {
         //TODO fix plugin loading later
-        IJ.run("ch.usb.USB_LungSegmentTJ");
+        IJ.run("ch.usb.USB_LungSegment");
     }
 
 }

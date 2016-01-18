@@ -12,8 +12,6 @@ import org.junit.Test;
 
 import org.junit.BeforeClass;
 
-import java.awt.image.ImageFilter;
-
 /**
  * @author mader
  *
@@ -40,7 +38,7 @@ public class TestCOPDSegmentation {
 
         assertNotNull("ImageJ should not be null",cInst);
 
-        ImagePlus imp = createSimpleLung((short) USB_LungSegmentTJ.MAX_HU_TISSUE);
+        ImagePlus imp = createSimpleLung((short) USB_LungSegment.MAX_HU_TISSUE);
 
         if(!headless) imp.show();
 
@@ -50,12 +48,12 @@ public class TestCOPDSegmentation {
         assertTrue("Non-zero Mean: ",preInvert>0);
 
         assertTrue("Maximum value matches lung maximum",
-                imp.getStatistics().max==USB_LungSegmentTJ.MAX_HU_TISSUE);
+                imp.getStatistics().max== USB_LungSegment.MAX_HU_TISSUE);
 
         assertTrue("Minimum value should be 0",
                 imp.getStatistics().min==0);
 
-        USB_LungSegmentTJ tjPlug = new USB_LungSegmentTJ();
+        USB_LungSegment tjPlug = new USB_LungSegment();
 
         assertEquals(" Ensure plugin returns correct flags",
                 tjPlug.setup("",imp),
@@ -77,12 +75,12 @@ public class TestCOPDSegmentation {
 
         assertNotNull("ImageJ should not be null",cInst);
         assertTrue("Lung values are inside 16-bit range (min) "+Short.MIN_VALUE,
-                (USB_LungSegmentTJ.MAX_HU_LUNG>Short.MIN_VALUE));
+                (USB_LungSegment.MAX_HU_LUNG>Short.MIN_VALUE));
 
         assertTrue("Lung values are inside 16-bit range (max) "+Short.MAX_VALUE,
-                (USB_LungSegmentTJ.MAX_HU_LUNG<Short.MAX_VALUE));
+                (USB_LungSegment.MAX_HU_LUNG<Short.MAX_VALUE));
 
-        ImagePlus imp = createSimpleLung((short) USB_LungSegmentTJ.MAX_HU_LUNG);
+        ImagePlus imp = createSimpleLung((short) USB_LungSegment.MAX_HU_LUNG);
 
         if(!headless) imp.show();
 
@@ -91,7 +89,7 @@ public class TestCOPDSegmentation {
         assertTrue("Non-zero Mean: ",preInvert>0);
 
         //IJ.run(ip,"Invert","");
-        USB_LungSegmentTJ tjPlug = new USB_LungSegmentTJ();
+        USB_LungSegment tjPlug = new USB_LungSegment();
 
         assertEquals(" Ensure plugin returns correct flags",
                 tjPlug.setup("",imp),
@@ -110,7 +108,15 @@ public class TestCOPDSegmentation {
 
     @Test
     public void testCOPDonDemoPatient() {
-        
+        System.out.println("@TEST testCOPDonDemoPatient ===start====" );
+        final String thoraxSamplePath= "/thoraxslice.tif";
+        IJ.open(TestBasicImageJ.class.getResource(thoraxSamplePath).getPath());
+        ImagePlus imp= IJ.getImage();
+        assertNotNull(thoraxSamplePath+" not loading", imp);
+
+
+
+        System.out.println("==end===@TEST testCOPDonDemoPatient " );
     }
 
 

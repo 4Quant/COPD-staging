@@ -1,14 +1,10 @@
 package ch.usb;
 
 import ij.IJ;
-import ij.ImageJ;
 import ij.ImagePlus;
-import ij.WindowManager;
 import ij.measure.Calibration;
 import ij.process.ImageProcessor;
-import ij.process.ShortProcessor;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
@@ -85,7 +81,7 @@ public class TestReadDICOMImage {
         TestBasicImageJ.LungStatistics lstats = TestBasicImageJ.LungStatistics.fromImp(_imp);
         System.out.println("Lung Stats:"+lstats);
         assertTrue("Lung Volume greater than 0", lstats.lungVoxels>0);
-        assertTrue("Mean Value greater than lung", lstats.meanVal>USB_LungSegmentTJ.MIN_HU_LUNG);
+        assertTrue("Mean Value greater than lung", lstats.meanVal> USB_LungSegment.MIN_HU_LUNG);
     }
 
     @Test
