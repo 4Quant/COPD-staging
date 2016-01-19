@@ -20,7 +20,7 @@ public class TestReadDICOMImage {
 
     final int mode = 1;
     private String getTestImage() {
-        String thoraxFile = this.getClass().getResource("/thoraxslice.tif").getPath();
+        String thoraxFile = this.getClass().getResource("/sampleCTs/thoraxslice.tif").getPath();
         return thoraxFile;
     }
 

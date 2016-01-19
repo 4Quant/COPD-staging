@@ -109,7 +109,7 @@ public class TestCOPDSegmentation {
     @Test
     public void testCOPDonDemoPatient() {
         System.out.println("@TEST testCOPDonDemoPatient ===start====" );
-        final String thoraxSamplePath= "/thoraxslice.tif";
+        final String thoraxSamplePath= "/sampleCTs/thoraxslice.tif";
         IJ.open(TestBasicImageJ.class.getResource(thoraxSamplePath).getPath());
         ImagePlus imp= IJ.getImage();
         assertNotNull(thoraxSamplePath+" not loading", imp);

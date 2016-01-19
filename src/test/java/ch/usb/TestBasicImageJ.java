@@ -38,7 +38,7 @@ public class TestBasicImageJ {
         if(headless) ImageJ.main("--headless".split(" "));
         else ImageJ.main("".split(" "));
         imgj = IJ.getInstance();
-        IJ.open(TestBasicImageJ.class.getResource("/thoraxslice.tif").getPath());
+        IJ.open(TestBasicImageJ.class.getResource("/sampleCTs/thoraxslice.tif").getPath());
         validCalibration = IJ.getImage().getLocalCalibration();
     }
 

@@ -81,7 +81,7 @@ public class USB_LungSegment implements PlugInFilter {
       // First filter image to eliminate extra-corporal outliers
       // which might be mistaken as tissue (bedding, table, specks):
       if (PREFILTER) {
-      RankFilters rf= new RankFilters();
+        RankFilters rf= new RankFilters();
         rf.rank(ips, OUTLIER_PREFILTER_RADIUS, RankFilters.OUTLIERS, 0, (float)50.0);
         rf.rank(ips, MEAN_PREFILTER_RADIUS, RankFilters.MEAN);
       }
@@ -116,7 +116,7 @@ public class USB_LungSegment implements PlugInFilter {
       for (int x=0; x<width; x++) {
         for (int y=0; y<height; y++) {
           ival= ips.getPixel(x,y);
-  	  if (ival!=LUNGLIKE_MASK) unfilteredVoxData[x][y]= NONLUNG_MASK;
+  	      if (ival!=LUNGLIKE_MASK) unfilteredVoxData[x][y]= NONLUNG_MASK;
         }
       }
       ips.setIntArray(unfilteredVoxData);
