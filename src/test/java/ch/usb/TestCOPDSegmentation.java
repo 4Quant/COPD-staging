@@ -8,6 +8,7 @@ import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
 import ij.plugin.filter.PlugInFilter;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.junit.BeforeClass;
@@ -19,6 +20,8 @@ import org.junit.BeforeClass;
 public class TestCOPDSegmentation {
 
     public static final boolean headless = false;
+    public static final boolean NON_STOP = true; // do not wait for user to see results
+
     @BeforeClass
     public static void setupImageJ() {
         if(headless) ImageJ.main("--headless".split(" "));
@@ -40,7 +43,7 @@ public class TestCOPDSegmentation {
 
         ImagePlus imp = createSimpleLung((short) USB_LungSegment.MAX_HU_TISSUE);
 
-        if(!headless) imp.show();
+        if(!headless) showAndWait("testSegmentEmptyLung", imp);
 
 
         double preInvert = imp.getStatistics().mean;
@@ -82,7 +85,7 @@ public class TestCOPDSegmentation {
 
         ImagePlus imp = createSimpleLung((short) USB_LungSegment.MAX_HU_LUNG);
 
-        if(!headless) imp.show();
+        if(!headless) showAndWait("testSegmentSimpleLung", imp);
 
         double preInvert = imp.getStatistics().mean;
 
@@ -105,20 +108,30 @@ public class TestCOPDSegmentation {
 
     }
 
-
-    @Test
-    public void testCOPDonDemoPatient() {
-        System.out.println("@TEST testCOPDonDemoPatient ===start====" );
-        final String thoraxSamplePath= "/sampleCTs/thoraxslice.tif";
-        IJ.open(TestBasicImageJ.class.getResource(thoraxSamplePath).getPath());
-        ImagePlus imp= IJ.getImage();
-        assertNotNull(thoraxSamplePath+" not loading", imp);
-
-
-
-        System.out.println("==end===@TEST testCOPDonDemoPatient " );
+    /**
+     * display an image via imagej and wait for user to respond.
+     * Intended for visual feedback during testing and must be disabled
+     * in final test.
+     * @param msg message to display
+     * @param imp image to display
+     */
+    private static void showAndWait(String msg, ImagePlus imp) {
+        imp.show();
+        if (!NON_STOP) IJ.runMacro("waitForUser(\""+msg+"\");run(\"Close All\");");
     }
 
+
+    @Test
+    public void testMockLung01() {
+        System.out.println("@TEST testMockLung01 ===start====" );
+        final String mockCTPath= "/mockCTs/01SquareLung1slice.tif";
+        IJ.open(TestBasicImageJ.class.getResource(mockCTPath).getPath());
+        ImagePlus imp= IJ.getImage();
+        if (!headless) showAndWait("MockLung01", imp);
+        assertNotNull(mockCTPath+" not loading", imp);
+
+        System.out.println("==end===@TEST testMockLung01 " );
+    }
 
 	/**
 	 * Test method for {@link tipl.scripts.UFEM#makePoros(tipl.formats.TImg)}.
