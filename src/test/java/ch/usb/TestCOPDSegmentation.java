@@ -8,7 +8,6 @@ import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
 import ij.plugin.filter.PlugInFilter;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.junit.BeforeClass;
@@ -18,12 +17,11 @@ import org.junit.BeforeClass;
  *
  */
 public class TestCOPDSegmentation {
-
     public static final boolean headless = false;
-    public static final boolean NON_STOP = true; // do not wait for user to see results
+    public static final boolean NON_STOP = false; // do not wait for user to see results
 
     @BeforeClass
-    public static void setupImageJ() {
+    public static void setupItrue() {
         if(headless) ImageJ.main("--headless".split(" "));
         else ImageJ.main("".split(" "));
     }
@@ -43,7 +41,7 @@ public class TestCOPDSegmentation {
 
         ImagePlus imp = createSimpleLung((short) USB_LungSegment.MAX_HU_TISSUE);
 
-        if(!headless) showAndWait("testSegmentEmptyLung", imp);
+        //if(!headless) showAndWait("testSegmentEmptyLung", imp);
 
 
         double preInvert = imp.getStatistics().mean;
@@ -124,11 +122,16 @@ public class TestCOPDSegmentation {
     @Test
     public void testMockLung01() {
         System.out.println("@TEST testMockLung01 ===start====" );
-        final String mockCTPath= "/mockCTs/01SquareLung1slice.tif";
+        final String mockCTPath= "/mockCTs/01SquareLung1slice4761vox.tif";
         IJ.open(TestBasicImageJ.class.getResource(mockCTPath).getPath());
         ImagePlus imp= IJ.getImage();
         if (!headless) showAndWait("MockLung01", imp);
         assertNotNull(mockCTPath+" not loading", imp);
+
+        TestBasicImageJ.LungStatistics lstats= TestBasicImageJ.LungStatistics.fromImp(imp);
+        long lungVox= TestBasicImageJ.LungStatistics.fromImp(imp).lungVoxels;
+        System.out.println("lungVox="+String.valueOf(lungVox));
+
 
         System.out.println("==end===@TEST testMockLung01 " );
     }

@@ -218,6 +218,7 @@ public class TestBasicImageJ {
             meanVal = sum/totalVol;
         }
         public static LungStatistics fromImp(ImagePlus imp) {
+            ImageJFunctions.convertFloat(imp);
 
             return new LungStatistics(ImageJFunctions.convertFloat(imp),
                     imp.getCalibration().getCValue(0));
