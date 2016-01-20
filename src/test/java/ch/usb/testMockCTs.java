@@ -43,35 +43,20 @@ public class TestMockCTs {
 
     }
 
-    @Ignore
-    @Test
-    /** another example where only real lung is in lung range
-     *  therefore - the segmentation should correspond to LungStatistics
-     */
-    public void testMockLung02() {
-        final String mockCTPath= "/mockCTs/02TwoSquareLung1slice9522.tif";
-        final long EXPECTED_VOXELS= 9522;
-        IJ.open(TestBasicImageJ.class.getResource(mockCTPath).getPath());
-        ImagePlus imp= IJ.getImage();
-
-        //if (!headless) showAndWait("MockLung01", imp);
-        assertNotNull(mockCTPath+" not loading", imp);
-
-        // Check Voxels are as expected
-        long lungVoxels= TestBasicImageJ.LungStatistics.fromImp(imp).lungVoxels;
-        System.out.println(mockCTPath+" lungVoxels="+lungVoxels);
-
-        //assertEquals(mockCTPath+"LungStats Voxs not equal to Segmented");
-
-    }
-
     @Test
     /**
-     * test all mock lung files
+     * test all mock lung files before and after segmentation
      */
-    public void testMocks() {
-        testMockCT("/mockCTs/01SquareLung1slice4761vox.tif", 4761, 4761);
-        testMockCT("/mockCTs/02TwoSquareLung1slice9522.tif", 9522, 9522);
+    public void testMocksPostSegmentation() {
+        testMockCT("/mockCTs/01SquareLung4761.tif", 4761, 4761);
+        testMockCT("/mockCTs/02TwoSquare9522.tif", 9522, 9522);
+        testMockCT("/mockCTs/03Lung3slices12658.tif", 12658, 12658);
+        testMockCT("/mockCTs/04LungBronchi13345.tif", 13345, 13345);
+        testMockCT("/mockCTs/05LungBronchiStomach14146_13345.tif", 14146, 13345);
+        testMockCT("/mockCTs/06AddOutsideAir27031_13345.tif", 27031, 13345);
+        testMockCT("/mockCTs/07AddNoise26050_13345.tif", 26050, 13345);
+        testMockCT("/mockCTs/08AddBedding36603_13345.tif", 36603, 13345);
+        testMockCT("/mockCTs/09AddSupport32465_13345.tif", 32465, 13345);
     }
 
     /** test one mock CT file that it conforms to expected pre and post Segmentation lung voxels
@@ -84,11 +69,20 @@ public class TestMockCTs {
         IJ.open(TestBasicImageJ.class.getResource(mockCTPath).getPath());
         ImagePlus imp= IJ.getImage();
         assertNotNull(mockCTPath+" not loading", imp);
+        long lungVoxels;
 
         // Check Voxel count is as expected before segmentation
-        long lungVoxels= TestBasicImageJ.LungStatistics.fromImp(imp).lungVoxels;
+        lungVoxels= TestBasicImageJ.LungStatistics.fromImp(imp).lungVoxels;
         System.out.println(mockCTPath+" BEFORE SEGMENT lungVoxels="+lungVoxels);
-        assertEquals(mockCTPath+" voxels not value expected ", expectedVoxelsBefore , lungVoxels);
+        assertEquals("PRE-Segmentation: "+mockCTPath+" voxels not value expected ", expectedVoxelsBefore , lungVoxels);
+
+        // Segmentation
+
+        // Check Voxel count is as expected AFTER segmentation
+        lungVoxels= TestBasicImageJ.LungStatistics.fromImp(imp).lungVoxels;
+        System.out.println(mockCTPath+" AFTER SEGMENT lungVoxels="+lungVoxels);
+        assertEquals("POST-Segmentation: "+mockCTPath+" voxels not value expected ", expectedVoxelsAfter , lungVoxels);
+
     }
 
     /**
