@@ -5,6 +5,7 @@ import ij.ImagePlus;
 import ij.measure.Calibration;
 import ij.process.ImageProcessor;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -70,6 +71,7 @@ public class TestReadDICOMImage {
     }
 
 
+    @Ignore
     @Test
     public void testImageRegion() {
 

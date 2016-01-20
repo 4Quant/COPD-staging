@@ -310,11 +310,4 @@ public class TestBasicImageJ {
     }
 
 
-    @Ignore
-    @Test
-    public void testPluginLoading() {
-        //TODO fix plugin loading later
-        IJ.run("ch.usb.USB_LungSegment");
-    }
-
 }
