@@ -106,6 +106,7 @@ public class TestCOPDSegmentation {
 
     }
 
+
     /**
      * display an image via imagej and wait for user to respond.
      * Intended for visual feedback during testing and must be disabled
