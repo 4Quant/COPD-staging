@@ -219,7 +219,7 @@ public class TestMockImages {
         ImagePlus imp= IJ.getImage();
         assertNotNull(CTPath+" not loading", imp);
 
-        USB_LungSegment segPlug = new USB_LungSegment();
+        COPD_LungSegment segPlug = new COPD_LungSegment();
 
         assertEquals(" Ensure plugin returns correct flags",
                 segPlug.setup("",imp), PlugInFilter.DOES_16+PlugInFilter.STACK_REQUIRED);

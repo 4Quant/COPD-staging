@@ -14,7 +14,6 @@ import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.integer.ShortType;
 import net.imglib2.type.numeric.real.FloatType;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -204,7 +203,7 @@ public class TestBasicImageJ {
                 cr.localize(pos);
                 double curValue = cr.get().get()+offset;
                 totalVol++;
-                if((curValue>= USB_LungSegment.MIN_HU_LUNG) && (curValue<= USB_LungSegment.MAX_HU_LUNG)) lungVol++;
+                if((curValue>= COPD_LungSegment.MIN_HU_LUNG) && (curValue<= COPD_LungSegment.MAX_HU_LUNG)) lungVol++;
                 if(curValue>max) max = curValue;
                 if(curValue<min) min = curValue;
                 sum+=curValue;
@@ -240,10 +239,10 @@ public class TestBasicImageJ {
         v2 = Double.valueOf(args[2]);
         // test ranges
         assertTrue( "Should be inside the lung range",
-                USB_LungSegment.inRange(v0, USB_LungSegment.MIN_HU_LUNG, USB_LungSegment.MAX_HU_LUNG)
+                COPD_LungSegment.inRange(v0, COPD_LungSegment.MIN_HU_LUNG, COPD_LungSegment.MAX_HU_LUNG)
         );
-        assertTrue( "Test lung values", USB_LungSegment.isLung(v0) );
-        assertTrue( "Test tissue values", USB_LungSegment.isTissue(v1) );
+        assertTrue( "Test lung values", COPD_LungSegment.isLung(v0) );
+        assertTrue( "Test tissue values", COPD_LungSegment.isTissue(v1) );
 
     }
 

@@ -22,9 +22,9 @@ import ij.process.FloodFiller;
 import ij.process.ImageProcessor;
 
 
-public class USB_LungSegment implements PlugInFilter {
+public class COPD_LungSegment implements PlugInFilter {
   // Constants
-  static final String VERSION= "ch.usb.USB_LungSegment version 0.41";
+  static final String VERSION= "ch.usb.COPD_LungSegment version 0.41";
   static final boolean VERBOSE= true;
   static final boolean DEBUG= true;
   public static final double MAX_HU_TISSUE= 2047.0;

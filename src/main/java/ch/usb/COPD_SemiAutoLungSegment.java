@@ -15,9 +15,9 @@ import java.awt.*;
 import ij.plugin.filter.*;
 import ij.io.FileInfo;
 
-public class USB_SemiAutoLungSegment implements PlugInFilter {
+public class COPD_SemiAutoLungSegment implements PlugInFilter {
   // Constants
-  static final String VERSION= "ch.usb.USB_SemiAutoLungSegment version 1.1";
+  static final String VERSION= "ch.usb.COPD_SemiAutoLungSegment version 1.1";
   static final boolean VERBOSE= true;
   static final boolean DEBUG= false;
   static final boolean PREFILTER= true;
@@ -136,7 +136,7 @@ public class USB_SemiAutoLungSegment implements PlugInFilter {
         System.out.println("isTissue="+String.valueOf(isTissue(v0))); 
       }
       catch (ArrayIndexOutOfBoundsException e) {
-        System.out.println("usage: ch.usb.USB_SemiAutoLungSegment  val1 val2 val3");
+        System.out.println("usage: ch.usb.COPD_SemiAutoLungSegment  val1 val2 val3");
       }
       catch (Exception e) {
         System.out.println(e);

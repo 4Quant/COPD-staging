@@ -83,7 +83,7 @@ public class TestReadDICOMImage {
         TestBasicImageJ.LungStatistics lstats = TestBasicImageJ.LungStatistics.fromImp(_imp);
         System.out.println("Lung Stats:"+lstats);
         assertTrue("Lung Volume greater than 0", lstats.lungVoxels>0);
-        assertTrue("Mean Value greater than lung", lstats.meanVal> USB_LungSegment.MIN_HU_LUNG);
+        assertTrue("Mean Value greater than lung", lstats.meanVal> COPD_LungSegment.MIN_HU_LUNG);
     }
 
     @Test

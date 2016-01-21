@@ -10,29 +10,49 @@ which will produce a number of files in the ```target/``` directory. The ```dwi-
 
 ## Overview
 
-This Project is for quantitative study of COPD (Chronic-Obstructive-Pulmonary-Disease).
-The current version is limited to imaging-based quantitative values derived from x-ray CT (Computer Tomography) images
-with the lungs completely contained within the volume of study.  Images will be DICOMs with proper calibration to
-Hensfield Units (HU)  (a standard of density to x-ray measurements).
+Chronic-Obstructive-Pulmonary-Disease (COPD in English or BPCO in Italian) is a chronic disorder which effects millions
+of individuals world wide.  It is typically, although not exclusively, a disease of older adults and is primarily
+attributed to chronic exposure to lung irritating substances contained in cigarette smoke and air pollution.
+One technique for measuring the extent of lung damage in COPD is via quantitative values calculated from Computer
+Tomography (CT) imaging of patients.
+Two particularly established quantities are: PD15 and LAA-950 (see paper for details).[Dirksen et al., Exploring the
+role of CT densitometry: a randomised study of augmentation therapy Eur Respir J 2009; 33: 1345–1353 and Chapman et al.,
+Intravenous augmentation treatment and lung density in severe α1 antitrypsin deficiency (RAPID): a randomised, double-
+blind, placebo-controlled trial.  Lancet 2015; 386: 360–68]
 
-Images obtained from all sources, are first Anonymized (using an open source) ImageJ plugin (Anonymize_IJ_DICOM),
-and packed into a single .tif file per CT study  ("study" radiology logo for= 1 patient/1 date/1 sitting).
 
-Critical to all quantification values is to first Segment the lungs from the images.
-The USB_LungSegment is the workhorse of this segmentation.  It is an ImageJ PluginFilter which segment's the lungs from
-a multi-slice CT .tif file.  All voxels determined to contain lung parenchyma are left unchanged by the plugin, but
- voxels considered non-lung are masked to a value well out of CT tissue range (>1000 of bone) so that such non-lung
-  items are not included in quantitative algorithms (discussed below).
+This Project contains some simple ImageJ based tools for the quantitative study of COPD and was developed at the
+Department of Radiology of University Hospital of Basel, Switzerland. The process in using this requires that CT data be
+exported from a radiology PACS in standard DICOM format.  These files can then be anonymized and stored as .tif files
+for convenience. The following requirements must be followed:
 
-USB_SemiAutoLungSegment is a utility ImageJ PluginFilter for performing lung segmentation with the help of
-a human observer.  It is intended as support for testing USB_LungSegment results.
+* Images contain a proper header for specifying spacial and density calibration, and such density calibration is in
+Hounsfield Units (HU).
+For convenience, DICOM image sequences can be stored in .tif file using ImageJ which maintains the necessary calibration
+header in doing so.
+* CT Volume must include complete thorax including complete lungs and at least one cm of surrounding tissues.
 
-USB_PDx is a quantification ImageJ PluginFilter which requires previously lung-segmented .tif files as input and
-produces a list of various standard lung quantities.  Most importantly the Percentile Density at programmable
-percentiles and the Low Attenuation Area (LAA) also at programmable thresholds.  Currently, it is
-programmed to produce PD%15, and LAA-950, which are of the most quoted in the medical literature.
-Results are added to an ImageJ ResultsTable.
+There are currently two ImageJ plugins included with this project:
 
-USButil and USBVoxBox are support classes...
+* COPD_LungSegment
+* COPD_PDxLAAx
+
+The first (COPD_LungSegment) segments the lungs from surrounding tissues. Output is the original image with all non-lung
+voxels set to an out-of-range value beyond bone (HU2048).
+The second (COPD_PDxLAAx) performs the calculation on images which have been segmented.
+The two plugins may be combined in future versions, but the advantage of maintaining these as separate is that it allows
+better error controls of the intermediate lung segmented process which is still in development.
+
+Current version of COPD_LungSegment does not exclude the upper airways (trachea and bronchi) from the lung tissue.
+One limitation is that it also includes pockets of air in the digestive system as lung tissue.  Air-filled cushioning
+devices surrounding the patient may also be misinterpreted as lung.  These limitations are  being actively studied and
+should be resolved in subsequent versions.
+
+COPD_PDxLAAx produces a list (in a ResultsTable) of various standard lung quantities.  Specifically, the Percentile
+Density at programmable percentiles and the Low Attenuation Area (LAA) also at programmable thresholds.  Currently, it
+is programmed to produce PD%15, LAA-850, LAA-900 and LAA-950, which are of the most quoted in the medical literature.
+
+COPD_SemiAutoLungSegment is an outdated utility for performing lung segmentation with minimal user interaction.  It is
+left in this project for comparison purposes.
 
 

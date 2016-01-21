@@ -1,4 +1,4 @@
-package ch.usb; /** ch.usb.USBVoxBox
+package ch.usb; /** ch.usb.CTVoxelBox
 *   
 *   Utilities for a group of Voxel values (without coordinates)
 *   Specific for USB CT data which is only in voxels
@@ -9,7 +9,7 @@ package ch.usb; /** ch.usb.USBVoxBox
 
 import java.util.Arrays;
 
-public class USBVoxBox {
+public class CTVoxelBox {
    private static final double EXPANSION_FACTOR= 2;
    private static final boolean DEBUG= true;
 
@@ -18,7 +18,7 @@ public class USBVoxBox {
    boolean _unsorted= false;
 
    /** Construct with initial array size */
-   public USBVoxBox(int startSize) {
+   public CTVoxelBox(int startSize) {
      _data= new int[startSize];
    }
 
@@ -66,7 +66,7 @@ public class USBVoxBox {
 
    /** Debug utility to output internals of object */
    public String toString() {
-     StringBuffer buffy= new StringBuffer("ch.usb.USBVoxBox:");
+     StringBuffer buffy= new StringBuffer("ch.usb.CTVoxelBox:");
      buffy.append("{");
      buffy.append("5%="+String.valueOf(getPD(5)+","));
      buffy.append("10%="+String.valueOf(getPD(10)+","));
@@ -78,7 +78,7 @@ public class USBVoxBox {
 
    /** Debug utility to output internals of object */
    public String dump() {
-     StringBuffer buffy= new StringBuffer("ch.usb.USBVoxBox:");
+     StringBuffer buffy= new StringBuffer("ch.usb.CTVoxelBox:");
      sort();
      buffy.append(Arrays.toString(_data));
      return buffy.toString();
@@ -94,7 +94,7 @@ public class USBVoxBox {
 
    public static void main(String[] args) {
      try {
-       USBVoxBox pd= new USBVoxBox(1);
+       CTVoxelBox pd= new CTVoxelBox(1);
        for (int i=0;i<args.length;i++) 
          pd.add(Integer.parseInt(args[i]));
        System.out.println(pd);
@@ -102,7 +102,7 @@ public class USBVoxBox {
        System.out.println(pd.dump());
      }
      catch (Exception e) {
-       System.out.println("usage: ch.usb.USBVoxBox val1 val2 val3 ...");
+       System.out.println("usage: ch.usb.CTVoxelBox val1 val2 val3 ...");
      }
 
    }

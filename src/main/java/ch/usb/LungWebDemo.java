@@ -22,12 +22,12 @@ public class LungWebDemo {
 
         System.out.println("Open: "+mriImage);
         IJ.open(mriImage);
-        USB_LungSegment tjPlug = new USB_LungSegment();
+        COPD_LungSegment tjPlug = new COPD_LungSegment();
         ImagePlus cImage = IJ.getImage();
         tjPlug.setup(segArgs,cImage);
         tjPlug.run(cImage.getProcessor());
         IJ.save(cImage,outImage);
-        USB_PDx pdxPlug = new USB_PDx();
+        COPD_PDxLAAx pdxPlug = new COPD_PDxLAAx();
         pdxPlug.setup("",cImage);
         pdxPlug.run(cImage.getProcessor());
         ResultsTable rt = Analyzer.getResultsTable();

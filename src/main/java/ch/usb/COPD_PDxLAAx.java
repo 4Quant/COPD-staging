@@ -16,9 +16,9 @@ import ij.plugin.filter.*;
 import ij.measure.ResultsTable;
 import ij.measure.Calibration;
 
-public class USB_PDx implements PlugInFilter {
+public class COPD_PDxLAAx implements PlugInFilter {
   // Constants
-  static final String VERSION= "ch.usb.USB_PDx version -380";
+  static final String VERSION= "ch.usb.COPD_PDxLAAx version -380";
   static final int MAX_LUNG_HU= -380;
   static final int MIN_LUNG_HU= -1500;
   static final int DEBUG_MASK= 4096;
@@ -29,7 +29,7 @@ public class USB_PDx implements PlugInFilter {
   ImagePlus _imp;
   ImageProcessor _ip;
 
-  USBVoxBox _lungDataBox;
+  CTVoxelBox _lungDataBox;
 
 
   // permit multiple LAA and PD cutoffs 
@@ -45,7 +45,21 @@ public class USB_PDx implements PlugInFilter {
     Calibration cal= _imp.getCalibration();
     _voxelVolume= cal.pixelWidth*cal.pixelHeight*cal.pixelDepth;
     _volumeUnits= cal.getUnit()+"^3";
-    _lungDataBox= new USBVoxBox(_imp.getWidth()*_imp.getHeight()*_imp.getStack().getSize());
+    _lungDataBox= new CTVoxelBox(_imp.getWidth()*_imp.getHeight()*_imp.getStack().getSize());
+  }
+
+
+  /** Extract gender information from image header */
+  private String getSexFromDicomHeader() {
+    final String DCM_SEX_TAG= "0010,0040"; // standard DICOM identifier
+    final int MF_SUBSTR_POS_START = 26;
+    final int MF_SUBSTR_POS_END = 27;
+    Info infoObj= new Info();
+    String dcmHeader= infoObj.getImageInfo(_imp,_ip);
+    int ind= dcmHeader.indexOf(DCM_SEX_TAG);
+    String gender="NA";
+    if (ind>=0) gender= dcmHeader.substring(ind+MF_SUBSTR_POS_START, ind+MF_SUBSTR_POS_END);
+    return gender;
   }
 
   private boolean isLung(double val) {return val>=MIN_LUNG_HU && val<=MAX_LUNG_HU;}
@@ -99,7 +113,7 @@ public class USB_PDx implements PlugInFilter {
     int lungVolume= (int)Math.round(lungVoxels*_voxelVolume);
     String studyTag= _imp.getShortTitle();
     rt.addValue("StudyID", studyTag);
-    rt.addValue("sex", USButil.getSex(_imp, _ip));
+    rt.addValue("sex", getSexFromDicomHeader());  // used in normilization
     rt.addValue("vox volume "+_volumeUnits, _voxelVolume);
     rt.addValue("LungVol voxs", lungVoxels);
     rt.addValue("LungVol "+_volumeUnits, lungVolume);
