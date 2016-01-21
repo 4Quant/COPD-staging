@@ -126,7 +126,7 @@ public class USB_PDx implements PlugInFilter {
       rt.addValue(tag, perc);
     }
 
-    rt.show("PD Results");
+    //rt.show("PD Results");
   }
 
 

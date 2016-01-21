@@ -40,7 +40,23 @@
             <artifactId>usb-copd</artifactId>
             <version>0.1-SNAPSHOT</version>
         </dependency>
+
+        <!-- for volume visualizations -->
+        <dependency>
+            <groupId>sc.fiji</groupId>
+            <artifactId>Volume_Viewer</artifactId>
+            <version>3-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
+
+    <repositories>
+        <!-- NB: for project parent -->
+        <repository>
+            <id>imagej.public</id>
+            <url>http://maven.imagej.net/content/groups/public</url>
+        </repository>
+    </repositories>
 
     <build>
         <plugins>
@@ -91,7 +107,7 @@
                         <transformers>
                             <transformer
                                 implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                <mainClass>ch.usb.USB_PDx</mainClass>
+                                <mainClass>ch.usb.LungWebDemo</mainClass>
                             </transformer>
 
                         </transformers>
