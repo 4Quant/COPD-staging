@@ -1,14 +1,14 @@
 package ch.usb;
 /** ImageJ Plugin to Segment Lung Tissue from CT Image Data
 *  
-*  Uses adhoc algorithm by TJ to identify lung:
+*  Uses adhoc algorithm  to identify lung:
 *  1. Eliminate extra-corporal solid (non-air) objects (CT table, bedding, random noise)
 *     by large radius noise-filtering and blurring.
 *  2. Threshold lung tissue and air (both inside and outside of body) to a LUNGLIKE_MASK 
 *     all else to NONLUNG_MASK.
 *  3. FloodFill extra-corporal LUNGLIKE_MASK (ie air) to EXTCORP_MASK.
-*  4. Consider Remaining LUNGLIKE_MASK voxels as true lung (an aprox.; airways, and corporal air GI).
-*  5. Restore original voxel values only where LUNGLIKE_MASK is set - rest set as NONLUNG.
+*  4. Consider Remaining LUNGLIKE_MASK voxels as true lung (an aprox.; airways, and corporal air GI) and
+*     Restore original voxel values only where LUNGLIKE_MASK is set - rest set as NONLUNG.
 *  
 *  @author drTJRE.com University Hospital of Basel
 *  @date   nov2015

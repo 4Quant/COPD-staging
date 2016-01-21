@@ -16,9 +16,15 @@ attributed to chronic exposure to lung irritating substances contained in cigare
 One technique for measuring the extent of lung damage in COPD is via quantitative values calculated from Computer
 Tomography (CT) imaging of patients.
 Two particularly established quantities are: PD15 and LAA-950 (see paper for details).[Dirksen et al., Exploring the
-role of CT densitometry: a randomised study of augmentation therapy Eur Respir J 2009; 33: 1345–1353 and Chapman et al.,
+role of CT densitometry: a randomised study of augmentation therapy Eur Respir J 2009; 33: 1345–1353 ]
+[Chapman et al.,
 Intravenous augmentation treatment and lung density in severe α1 antitrypsin deficiency (RAPID): a randomised, double-
 blind, placebo-controlled trial.  Lancet 2015; 386: 360–68]
+[Dirksen A, Piitulainen E, Parr DG, Deng C, Wencker M, Shaker SB, Stockley RA.
+Exploring the role of CT densitometry: a randomised study of augmentation therapy in alpha1-antitrypsin deficiency.
+Supplementary Online Material.
+Eur Respir J. 2009 Jun;33(6):1345-53. doi: 10.1183/09031936.00159408. Epub 2009 Feb 5.
+PMID: 19196813]
 
 
 This Project contains some simple ImageJ based tools for the quantitative study of COPD and was developed at the
