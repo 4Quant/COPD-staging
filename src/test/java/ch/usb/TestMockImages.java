@@ -21,7 +21,8 @@ public class TestMockImages {
     private final double PRESEG_TOLERANCE= 0.0;
     public static final boolean headless = false;
     public static final boolean NON_STOP = false; // do not wait for user to see results
-    static final String MOCK01="/mockCTs/01SquareLung4761.tif";
+    static final String MOCK00="/mockCTs/00SquareLung10by10.tif";
+    static final String MOCK01="/mockCTs/01SquareLung10k.tif";
     static final String MOCK02="/mockCTs/02TwoSquare9522.tif";
     static final String MOCK03="/mockCTs/03Lung3slices12658.tif";
     static final String MOCK04="/mockCTs/04LungBronchi13345.tif";
@@ -30,15 +31,18 @@ public class TestMockImages {
     static final String MOCK07="/mockCTs/07AddNoise26095_13345.tif";
     static final String MOCK08="/mockCTs/08AddBedding36603_13345.tif";
     static final String MOCK09="/mockCTs/09AddSupport32464_13345.tif";
-    static final long[] MOCK01EXP= {4761, 4761}; // expected values before and after segmentation
-    static final long[] MOCK02EXP= {9522, 9522};
-    static final long[] MOCK03EXP= {12658, 12658};
-    static final long[] MOCK04EXP= {13345, 13345};
-    static final long[] MOCK05EXP= {14146, 13345};
-    static final long[] MOCK06EXP= {27031, 13345};
-    static final long[] MOCK07EXP= {26095, 13345};
-    static final long[] MOCK08EXP= {36603, 13345};
-    static final long[] MOCK09EXP= {32464, 13345};
+    static final long[] MOCK01_LUNGVOL= {10000, 10000}; // expected values before and after segmentation
+    static final long[] MOCK02_LUNGVOL= {9522, 9522};
+    static final long[] MOCK03_LUNGVOL= {12658, 12658};
+    static final long[] MOCK04_LUNGVOL= {13345, 13345};
+    static final long[] MOCK05_LUNGVOL= {14146, 13345};
+    static final long[] MOCK06_LUNGVOL= {27031, 13345};
+    static final long[] MOCK07_LUNGVOL= {26095, 13345};
+    static final long[] MOCK08_LUNGVOL= {36603, 13345};
+    static final long[] MOCK09_LUNGVOL= {32464, 13345};
+    static final int[] MOCK01_PD= {15, -1008, 20, -1003, 30, -993}; // expected values of PDs
+    static final int[] MOCK00_LAA= {-1023, 10, -1022,20, -1021,30}; // thresholds and expected LAAs
+    static final int[] MOCK01_LAA= {-1023, 100, -950,7400, -900,10000}; // thresholds and expected LAAs
 
     double _tolerance= 0.0;
 
@@ -54,8 +58,8 @@ public class TestMockImages {
      */
     @Test
     public void testMock01PreSegmentation() {
-        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT");
-        checkCTLungVoxelCount(MOCK01,MOCK01EXP[0]);
+        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT:");
+        checkCTLungVoxelCount(MOCK01,MOCK01_LUNGVOL[0]);
     }
 
     /**
@@ -63,50 +67,118 @@ public class TestMockImages {
      */
     @Test
     public void testMock01PostSegmentation() {
-        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT");
-        testSegmentation(MOCK01, MOCK01EXP[1]);
+        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT:");
+        testSegmentation(MOCK01, MOCK01_LUNGVOL[1]);
     }
 
     @Test
+    public void testMock01PD1() {
+        _tolerance= POSTSEG_TOLERANCE;
+        testPD(MOCK01, MOCK01_PD[0], MOCK01_PD[1]);
+    }
+
+
+    @Test
+    public void testMock01PD2() {
+        _tolerance= POSTSEG_TOLERANCE;
+        testPD(MOCK01, MOCK01_PD[2], MOCK01_PD[3]);
+    }
+
+    @Test
+    public void testMock01PD3() {
+        _tolerance= POSTSEG_TOLERANCE;
+        testPD(MOCK01, MOCK01_PD[4], MOCK01_PD[5]);
+    }
+
+    @Test
+    public void testMock00LAA1() {
+        _tolerance= POSTSEG_TOLERANCE;
+        testLAA(MOCK00, MOCK00_LAA[0], MOCK00_LAA[1]);
+    }
+
+
+    @Test
+    public void testMock00LAA2() {
+        _tolerance= POSTSEG_TOLERANCE;
+        testLAA(MOCK00, MOCK00_LAA[2], MOCK00_LAA[3]);
+    }
+
+    @Test
+    public void testMock00LAA3() {
+        _tolerance= POSTSEG_TOLERANCE;
+        testLAA(MOCK00, MOCK00_LAA[4], MOCK00_LAA[5]);
+    }
+
+
+
+    @Test
+    public void testMock01LAA1() {
+        _tolerance= POSTSEG_TOLERANCE;
+        testLAA(MOCK01, MOCK01_LAA[0], MOCK01_LAA[1]);
+    }
+
+
+    @Test
+    public void testMock01LAA2() {
+        _tolerance= POSTSEG_TOLERANCE;
+        testLAA(MOCK01, MOCK01_LAA[2], MOCK01_LAA[3]);
+    }
+
+    @Test
+    public void testMock01LAA3() {
+        _tolerance= POSTSEG_TOLERANCE;
+        testLAA(MOCK01, MOCK01_LAA[4], MOCK01_LAA[5]);
+    }
+
+
+
+    @Test
     public void testMock02PostSegmentation() {
-        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT");
-        testSegmentation(MOCK02, MOCK02EXP[1]);
+        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT:");
+        testSegmentation(MOCK02, MOCK02_LUNGVOL[1]);
+    }
+
+
+    @Test
+    public void testMock01LAA() {
+        _tolerance= POSTSEG_TOLERANCE;
+        testLAA(MOCK01, MOCK01_LAA[0], MOCK01_LAA[1]);
     }
 
     @Test
     public void testMock03PostSegmentation() {
-        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT");
-        testSegmentation(MOCK03, MOCK03EXP[1]);
+        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT:");
+        testSegmentation(MOCK03, MOCK03_LUNGVOL[1]);
     }
 
     @Test
     public void testMock04PostSegmentation() {
-        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT");
-        testSegmentation(MOCK04, MOCK04EXP[1]);
+        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT:");
+        testSegmentation(MOCK04, MOCK04_LUNGVOL[1]);
     }
 
     @Test
     public void testMock05PostSegmentation() {
-        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT");
-        testSegmentation(MOCK05, MOCK05EXP[1]);
+        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT:");
+        testSegmentation(MOCK05, MOCK05_LUNGVOL[1]);
     }
 
     @Test
     public void testMock06PostSegmentation() {
-        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT");
-        testSegmentation(MOCK06, MOCK06EXP[1]);
+        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT:");
+        testSegmentation(MOCK06, MOCK06_LUNGVOL[1]);
     }
 
     @Test
     public void testMock07PostSegmentation() {
-        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT");
-        testSegmentation(MOCK07, MOCK07EXP[1]);
+        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT:");
+        testSegmentation(MOCK07, MOCK07_LUNGVOL[1]);
     }
 
     @Test
     public void testMock08PostSegmentation() {
-        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT");
-        testSegmentation(MOCK08, MOCK08EXP[1]);
+        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT:");
+        testSegmentation(MOCK08, MOCK08_LUNGVOL[1]);
     }
 
     // TODO: 20/01/16 - improve segmentation plugin so this "patient on cushion" case
@@ -114,56 +186,56 @@ public class TestMockImages {
     @Ignore
     @Test
     public void testMock09PostSegmentation() {
-        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT");
-        testSegmentation(MOCK09, MOCK09EXP[1]);
+        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT:");
+        testSegmentation(MOCK09, MOCK09_LUNGVOL[1]);
     }
 
     @Test
     public void testMock02PreSegmentation() {
-        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT");
-        checkCTLungVoxelCount(MOCK02, MOCK02EXP[0]);
+        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT:");
+        checkCTLungVoxelCount(MOCK02, MOCK02_LUNGVOL[0]);
     }
 
     @Test
     public void testMock03PreSegmentation() {
-        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT");
-        checkCTLungVoxelCount(MOCK03, MOCK03EXP[0]);
+        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT:");
+        checkCTLungVoxelCount(MOCK03, MOCK03_LUNGVOL[0]);
     }
 
     @Test
     public void testMock04PreSegmentation() {
-        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT");
-        checkCTLungVoxelCount(MOCK04, MOCK04EXP[0]);
+        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT:");
+        checkCTLungVoxelCount(MOCK04, MOCK04_LUNGVOL[0]);
     }
 
     @Test
     public void testMock05PreSegmentation() {
-        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT");
-        checkCTLungVoxelCount(MOCK05, MOCK05EXP[0]);
+        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT:");
+        checkCTLungVoxelCount(MOCK05, MOCK05_LUNGVOL[0]);
     }
 
     @Test
     public void testMock06PreSegmentation() {
-        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT");
-        checkCTLungVoxelCount(MOCK06, MOCK06EXP[0]);
+        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT:");
+        checkCTLungVoxelCount(MOCK06, MOCK06_LUNGVOL[0]);
     }
 
     @Test
     public void testMock07PreSegmentation() {
-        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT");
-        checkCTLungVoxelCount(MOCK07, MOCK07EXP[0]);
+        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT:");
+        checkCTLungVoxelCount(MOCK07, MOCK07_LUNGVOL[0]);
     }
 
     @Test
     public void testMock08PreSegmentation() {
-        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT");
-        checkCTLungVoxelCount(MOCK08, MOCK08EXP[0]);
+        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT:");
+        checkCTLungVoxelCount(MOCK08, MOCK08_LUNGVOL[0]);
     }
 
     @Test
     public void testMock09PreSegmentation() {
-        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT");
-        checkCTLungVoxelCount(MOCK09, MOCK09EXP[0]);
+        _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT:");
+        checkCTLungVoxelCount(MOCK09, MOCK09_LUNGVOL[0]);
     }
 
     /**
@@ -214,20 +286,62 @@ public class TestMockImages {
      */
     public void testSegmentation(String CTPath, long expectedVoxels) {
         String cPath = TestMockImages.class.getResource(CTPath).getPath();
-        System.out.println("Reading "+cPath);
+        System.out.println("Reading " + cPath);
         IJ.open(cPath);
-        ImagePlus imp= IJ.getImage();
-        assertNotNull(CTPath+" not loading", imp);
+        ImagePlus imp = IJ.getImage();
+        assertNotNull(CTPath + " not loading", imp);
 
         COPD_LungSegment segPlug = new COPD_LungSegment();
 
         assertEquals(" Ensure plugin returns correct flags",
-                segPlug.setup("",imp), PlugInFilter.DOES_16+PlugInFilter.STACK_REQUIRED);
+                segPlug.setup("", imp), PlugInFilter.DOES_16 + PlugInFilter.STACK_REQUIRED);
 
         segPlug.run(imp.getProcessor());
         //showAndWait("remember to comment out", imp);
 
         checkCTLungVoxelCount(imp, expectedVoxels);
+    }
+
+    /**
+     * Perform PercentileDensity for specific percentile and test result
+     *
+     * @param CTPath
+     * @param percentile
+     * @param expectedPD15
+     */
+    public void testPD(String CTPath, int percentile, int expectedPD15) {
+        String cPath = TestMockImages.class.getResource(CTPath).getPath();
+        System.out.println("Reading "+cPath);
+        IJ.open(cPath);
+        ImagePlus imp= IJ.getImage();
+        assertNotNull(CTPath+" not loading", imp);
+
+        COPD_PDxLAAx pdPlug= new COPD_PDxLAAx();
+        pdPlug.setup("", imp);
+        pdPlug.run(imp.getProcessor());
+        int val= pdPlug.getPD(percentile);
+        assertEquals(CTPath+":PD"+String.valueOf(percentile)+" calculated does not match expected", expectedPD15, val);
+
+    }
+
+    /**
+     * Calculates Low Attenuation Level for specific threshold on an image
+     * @param CTPath  image to test
+     * @param threshold max attenuation (density in HU) to test
+     * @param expectedLAA value expected
+     */
+    public void testLAA(String CTPath, int threshold, long expectedLAA) {
+        String cPath = TestMockImages.class.getResource(CTPath).getPath();
+        System.out.println("Reading "+cPath);
+        IJ.open(cPath);
+        ImagePlus imp= IJ.getImage();
+        assertNotNull(CTPath+" not loading", imp);
+
+        COPD_PDxLAAx pdPlug= new COPD_PDxLAAx();
+        pdPlug.setup("", imp);
+        pdPlug.run(imp.getProcessor());
+        int val= pdPlug.getLAA(threshold);
+        assertEquals(CTPath+": LAA calculated does not match expected", expectedLAA, val);
 
     }
 }

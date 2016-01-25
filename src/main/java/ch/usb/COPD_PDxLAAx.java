@@ -21,10 +21,7 @@ public class COPD_PDxLAAx implements PlugInFilter {
   static final String VERSION= "ch.usb.COPD_PDxLAAx version -380";
   static final int MAX_LUNG_HU= -380;
   static final int MIN_LUNG_HU= -1500;
-  static final int DEBUG_MASK= 4096;
-  static final boolean DEBUG= true;
   static final boolean VERBOSE= true;
-  static String MEASUREMENT_LABEL= "LAA";
 
   ImagePlus _imp;
   ImageProcessor _ip;
@@ -84,7 +81,6 @@ public class COPD_PDxLAAx implements PlugInFilter {
         for (int y=rec.y; y<(rec.y+rec.height); y++) {
           val= Double.valueOf(ips.getPixelValue(x,y)); 
 	  if (isLung(val)) {
-	      if (DEBUG) ips.putPixel(x,y,DEBUG_MASK);
 	      _lungDataBox.add((int)Math.round(val));
 	  }
         }
@@ -143,25 +139,26 @@ public class COPD_PDxLAAx implements PlugInFilter {
     //rt.show("PD Results");
   }
 
+    /**
+     * determine Percentile Density at pecific percentile
+     * (density (HU) for which this percentile of voxels fall below).
+     *
+     * @param percentile value to test (most common in med literature is 15)
+     * @return
+     */
+    public int getPD(int percentile)  {
+      return _lungDataBox.getPD(percentile);
+    }
 
-
-  // "in-line" utilities
-  private static void DEBUG(String msg) {if (VERBOSE) System.out.println(msg);}
-  private static void DEBUG(String msg, java.lang.Object x) {if (VERBOSE) System.out.println(msg+"="+String.valueOf(x));}
-  private static void show(String msg, java.lang.Object x) {IJ.showMessage("USB", msg+"="+String.valueOf(x));}
-  private static void show(String msg) {IJ.showMessage("USB",msg);}
-
-  /** tester */
-  public static void main(String[] args) {
-      try {
-      }
-      catch (ArrayIndexOutOfBoundsException e) {
-        System.out.println("usage: USB_LAAX  ");
-      }
-      catch (Exception e) {
-        System.out.println(e);
-      }
-
-  }
+    /**
+     * Calculate Low Attenuation Area =
+     * number of voxels (or 'area') below a specific attenuation (ie density)
+     *
+     * @param density value to check in Hensfield Units
+     * @return
+     */
+    public int getLAA(int density){
+        return _lungDataBox.getLAA(density);
+    }
 
 }

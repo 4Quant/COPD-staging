@@ -42,9 +42,16 @@ public class CTVoxelBox {
    *     in value.
    */
    public int getPD(int percentile) {
-     sort();
-     int rank= (int)Math.ceil(_dataCount*percentile/100);
-     return (rank<_dataCount?_data[rank]:_data[_dataCount-1]);
+       int value;
+       if (_dataCount>0) {
+           sort();
+           int rank = (int) Math.ceil(_dataCount * percentile / 100);
+           value= (rank < _dataCount ? _data[rank] : _data[_dataCount - 1]);
+       }
+       else {
+           value= 0;  // impossible value for lung - must be no lung found
+       }
+       return value;
    }
 
    /** returns number of voxels in set which have a value below @arg value */
@@ -92,20 +99,6 @@ public class CTVoxelBox {
      }
    }
 
-   public static void main(String[] args) {
-     try {
-       CTVoxelBox pd= new CTVoxelBox(1);
-       for (int i=0;i<args.length;i++) 
-         pd.add(Integer.parseInt(args[i]));
-       System.out.println(pd);
-       System.out.println(pd.getSize());
-       System.out.println(pd.dump());
-     }
-     catch (Exception e) {
-       System.out.println("usage: ch.usb.CTVoxelBox val1 val2 val3 ...");
-     }
-
-   }
 
 
 }
