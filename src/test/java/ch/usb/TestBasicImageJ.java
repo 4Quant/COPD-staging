@@ -238,11 +238,7 @@ public class TestBasicImageJ {
         v1 = Double.valueOf(args[1]);
         v2 = Double.valueOf(args[2]);
         // test ranges
-        assertTrue( "Should be inside the lung range",
-                COPD_LungSegment.inRange(v0, COPD_LungSegment.MIN_HU_LUNG, COPD_LungSegment.MAX_HU_LUNG)
-        );
         assertTrue( "Test lung values", COPD_LungSegment.isLung(v0) );
-        assertTrue( "Test tissue values", COPD_LungSegment.isTissue(v1) );
 
     }
 
