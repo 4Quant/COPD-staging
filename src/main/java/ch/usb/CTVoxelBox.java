@@ -1,11 +1,17 @@
-package ch.usb; /** ch.usb.CTVoxelBox
-*   
-*   Utilities for a group of Voxel values (without coordinates)
-*   Specific for USB CT data which is only in voxels
+package ch.usb;
+
+/** ch.usb.CTVoxelBox
 *
-*   @auth drTJRE.com
-*   @date jan2015
-*/
+ *   Utility to collect a list of CT Hounsfield Unit (HU) values
+ *   and then calculate COPD specific quantities based on these values.
+ *
+ *   Specifically:
+ *     PD - Percentile Density (in HU) at any percentile (ie. PD15, PD20,...)
+ *     LAA - Low Attenuation Area at any Hounsfield Unit cut-off
+ *
+ *  @author thomas.re@usb.ch  - University Hospital of Basel, Switzerland
+ *  @date    jan2016
+ */
 
 import java.util.Arrays;
 
@@ -17,15 +23,25 @@ public class CTVoxelBox {
    int _dataCount=0;
    boolean _unsorted= false;
 
-   /** Construct with initial array size */
+    /**
+     * Constructor
+     *
+     * @param startSize estimate of data size
+     */
    public CTVoxelBox(int startSize) {
-     _data= new int[startSize];
+       _data= new int[startSize];
    }
 
-   /** returns total number of stored voxel values */
-   public int getSize() {return _dataCount;}
 
-   /** add a value to data set for later sorting */
+    /**
+     * @return  number of values currently stored in collection
+     * */
+   public int getCount() {return _dataCount;}
+
+    /**
+     * Add value to collection
+     * @param value value in HU to add
+     */
    public void add(int value) {
      if (_dataCount>=_data.length) {
        int[] temp= Arrays.copyOf(_data, (int)(_data.length*EXPANSION_FACTOR));
@@ -36,11 +52,13 @@ public class CTVoxelBox {
      _unsorted= true;
    }
 
-   /** returns value corresponding to the requested percentile
-   *   For example if percentile=15
-   *     returns the value with at least 14.9% of other values lower or equal
-   *     in value.
-   */
+
+    /**
+     * Calculates value, in HU's, corresponding to the requested percentile
+     *
+     * @param percentile percentile of value to seek
+     * @return value in HU at requested percentile
+     */
    public int getPD(int percentile) {
        int value;
        if (_dataCount>0) {
@@ -54,44 +72,35 @@ public class CTVoxelBox {
        return value;
    }
 
-   /** returns number of voxels in set which have a value below @arg value */
-   public int getVoxCountBelow(int value) {
+    /**
+     * Calculates number of voxels in set which have a value below HUvalue
+     *
+     * @param HUvalue Houndsfield Unit value maximum cut-off
+     * @return
+     */
+   public int getVoxCountBelow(int HUvalue) {
      sort();
      int i=0, count=0;
-     while (_data[i++]<value) count++;
+     while (i<_dataCount && _data[i++]<HUvalue) count++;
      return count;
    }
 
-   /** returns Low Attenuation Area 
-    *  or number of voxels in set which have a value below or equal
-    *  @arg value 
+   /**
+    *  Calculates Low Attenuation Area
+    *  or number of voxels in set which have a value below or equal to
+    *  Note difference with getVoxCountBelow is that it includes the
+    *  value (not just those below it)
+    *
+    *  @arg val
     */
-   public int getLAA(int val) {
-     return getVoxCountBelow(val+1);
+   public int getLAA(int HUvalue) {
+     return getVoxCountBelow(HUvalue+1);
    }
 
 
-   /** Debug utility to output internals of object */
-   public String toString() {
-     StringBuffer buffy= new StringBuffer("ch.usb.CTVoxelBox:");
-     buffy.append("{");
-     buffy.append("5%="+String.valueOf(getPD(5)+","));
-     buffy.append("10%="+String.valueOf(getPD(10)+","));
-     buffy.append("15%="+String.valueOf(getPD(15)+","));
-     buffy.append("20%="+String.valueOf(getPD(20)));
-     buffy.append("}");
-     return buffy.toString();
-   }
-
-   /** Debug utility to output internals of object */
-   public String dump() {
-     StringBuffer buffy= new StringBuffer("ch.usb.CTVoxelBox:");
-     sort();
-     buffy.append(Arrays.toString(_data));
-     return buffy.toString();
-   }
-
-   /** sort all voxel values in set */
+    /**
+     * Sort all voxel values in set
+     */
    private void sort() {
      if (_unsorted) {
        Arrays.sort(_data, 0, _dataCount);

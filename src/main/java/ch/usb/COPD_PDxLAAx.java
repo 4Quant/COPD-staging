@@ -1,43 +1,93 @@
-package ch.usb; /** ImageJ Plugin
-*   Percentile Denisty PD 
-*   for multiple Percentile Values.
-*
-*   Requires segmented lung stack as input
-*
-*  @author drTJRE.com University Hospital of Basel
-*  @date   dec2015
-*/
+package ch.usb;
 
-import ij.*;
-import ij.process.*;
+/**
+ *
+ *  ImageJ Plugin to calculate:
+ *  PercentileDensity (PD) at multiple percentiles
+ *  and LowAttenuationArea (LAA) at multiple lower density cut-offs.
+ *  from pre-segmented CT Lung images.
+ *
+ *  WARNING: Pre-process images with COPD_LungSegment or equivalent (see below)
+ *
+ *  Input:
+ *    pre-segmented ImagePlus such that only voxels within lung density range (<380HU)
+ *    are considered as lung tissue for example using COPD_LungSegment.
+ *
+ *    Works only on 16bit Multi-slice ImagePlus images
+ *    Images must contain Calibration of CT density in Hounsfield Units (HU)
+ *
+ *  Output:
+ *    Results table with calculated values.
+ *    Actual percentiles and lower attenuation limits are set internally.
+ *    Alernatively, methods getPD and getLAA can be called directly.
+ *
+ *  Medical References:
+ *    http://www.ncbi.nlm.nih.gov/pubmed/9196813
+ *    http://www.ncbi.nlm.nih.gov/pubmed/19196813
+ *
+ *  @author thomas.re@usb.ch  - University Hospital of Basel, Switzerland
+ *  @date    jan2016
+ *
+ */
 
-import java.awt.*;
-import ij.plugin.filter.*;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.plugin.filter.Analyzer;
+import ij.plugin.filter.Info;
+import ij.plugin.filter.PlugInFilter;
 import ij.measure.ResultsTable;
 import ij.measure.Calibration;
+import ij.process.ImageProcessor;
 
 public class COPD_PDxLAAx implements PlugInFilter {
-  // Constants
-  static final String VERSION= "ch.usb.COPD_PDxLAAx version -380";
-  static final int MAX_LUNG_HU= -380;
-  static final int MIN_LUNG_HU= -1500;
-  static final boolean VERBOSE= true;
 
+    // lung density limits - according to medical literature
+  static final int MAX_HU_LUNG= -380;
+  static final int MIN_HU_LUNG= -1500;
+
+    static final boolean headless= true;
+
+  static final int RESULTS_PRECISION= 3; // decimal places to display in ResultsTable
+
+    /**
+     *  image being processed
+     */
   ImagePlus _imp;
+
+    /**
+     *  processor to image being processed
+     */
   ImageProcessor _ip;
 
-  CTVoxelBox _lungDataBox;
 
+    /**
+     * container of voxel data with statistical functionality
+     */
+    CTVoxelBox _lungDataBox;
 
-  // permit multiple LAA and PD cutoffs 
-  int[] _laas= {-1024, -950, -900};
-  int[] _pds= {15}; // percentile densities to calculate
+    /**
+     * Low Attenuation limits to calculate
+     */
+  protected int[] _laas= {-1024, -950, -900};
+    /**
+     * Percentile Density percentiles to calculate (may be multiple)
+     */
+  protected int[] _pds= {15}; // percentile densities to calculate
 
-  double _voxelVolume; 
-  String _volumeUnits;
+    /**
+     * real world voxel volume as determined from image header
+     */
+  protected double _voxelVolume;
 
-  /** initialize member values as needed. */
-  protected void init() {  
+    /**
+     * real world volume units as determined from image header
+     */
+  protected String _volumeUnits;
+
+    /**
+     * initialize member values based on image header
+     */
+  protected void init() {
     // prepare output labels with volume units 
     Calibration cal= _imp.getCalibration();
     _voxelVolume= cal.pixelWidth*cal.pixelHeight*cal.pixelDepth;
@@ -46,7 +96,13 @@ public class COPD_PDxLAAx implements PlugInFilter {
   }
 
 
-  /** Extract gender information from image header */
+    // TODO: 26/01/16 replace this with a DICOM header utility class
+    /**
+     * Determine gender of subject from DICOM header if available.
+     * Useful for some normalization calculations.
+     *
+     * @return gender of subject [M|F] or NA if not found.
+     */
   private String getSexFromDicomHeader() {
     final String DCM_SEX_TAG= "0010,0040"; // standard DICOM identifier
     final int MF_SUBSTR_POS_START = 26;
@@ -59,41 +115,54 @@ public class COPD_PDxLAAx implements PlugInFilter {
     return gender;
   }
 
-  private boolean isLung(double val) {return val>=MIN_LUNG_HU && val<=MAX_LUNG_HU;}
+    /**
+     * utility to check if a specific Hounsfeld Unit is within lung density range.
+     *
+     * @param HUval Hounsfeld Unit value to check
+     * @return true if within lung density range
+     */
+    public static boolean isLung(double HUval) { return (HUval>=MIN_HU_LUNG && HUval<=MAX_HU_LUNG);}
 
-  public int setup(String arg, ImagePlus imp) {
-    this._imp = imp;
-    if (VERBOSE) System.out.println(VERSION);
-    init();
-    return DOES_16+STACK_REQUIRED;
-  }
+    // TODO: 26/01/16 parse arguments to set percentiles and lower attenuation limits
+    /** initialize instance
+     *
+     * @param arg should contain settings/options info
+     * @param imp image to analyze
+     * @return check that image is 16bit-multislice
+     */
+    public int setup(String arg, ImagePlus imp) {
+      this._imp = imp;
+      init();
+      return DOES_16+STACK_REQUIRED;
+    }
 
-  public void run(ImageProcessor ip0) {
-    this._ip= ip0;
+    /**
+     * Calculate PD/LAA and add results to current ResultsTable
+     * @param ip ImageProcessor of image being analyzed.
+     */
+  public void run(ImageProcessor ip) {
+    this._ip= ip;
     double val;
     ImageStack istack= _imp.getStack();
-    Rectangle rec= new Rectangle(_imp.getWidth(), _imp.getHeight()); 
+    int width= _imp.getWidth();
+    int height= _imp.getHeight();
     int numOfSlices= istack.getSize();
-    // fill histogram
+    // Iterate all slices all voxels and fill CTVoxelBox
     for (int sliceN=1;sliceN<=numOfSlices;sliceN++) {
       ImageProcessor ips= istack.getProcessor(sliceN); 
-      for (int x=rec.x; x<(rec.x+rec.width); x++) {  
-        for (int y=rec.y; y<(rec.y+rec.height); y++) {
-          val= Double.valueOf(ips.getPixelValue(x,y)); 
-	  if (isLung(val)) {
-	      _lungDataBox.add((int)Math.round(val));
-	  }
+      for (int x=0; x<(width); x++) {
+        for (int y=0; y<(height); y++) {
+          val= ips.getPixelValue(x,y);
+	      if (isLung(val)) _lungDataBox.add((int)Math.round(val));
         }
       }
-    } // next slice in line - step down:)
-    // output results - for now to stdio - soon to table
+    }
     showResults();
   }
 
-
-  static final int RESULTS_PRECISION= 3; // number of decimal places to display
-
-  /** Fill PD and LAAX value in Results table */
+    /**
+     * Add PD and LAA values to Results Table
+     */
   private void showResults() {
     ResultsTable rt= Analyzer.getResultsTable();
     String tag;
@@ -105,7 +174,7 @@ public class COPD_PDxLAAx implements PlugInFilter {
     }
     rt.incrementCounter();
     // Values specific to this CT
-    int lungVoxels= _lungDataBox.getSize();
+    int lungVoxels= _lungDataBox.getCount();
     int lungVolume= (int)Math.round(lungVoxels*_voxelVolume);
     String studyTag= _imp.getShortTitle();
     rt.addValue("StudyID", studyTag);
@@ -136,7 +205,7 @@ public class COPD_PDxLAAx implements PlugInFilter {
       rt.addValue(tag, perc);
     }
 
-    //rt.show("PD Results");
+    if (!headless) rt.show("PD Results");
   }
 
     /**

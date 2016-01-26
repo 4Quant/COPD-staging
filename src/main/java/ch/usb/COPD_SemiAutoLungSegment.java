@@ -1,19 +1,66 @@
-package ch.usb; /** ImageJ Plugin to Segment Lung Tissue from CT Image Data
-*
-*  Requires user interaction to chose a ROI containing at least
-*  one voxel of left and right lung in all slices, but not 
-*  containing any non-lung air voxels.
-*  
-*  @author drTJRE.com University Hospital of Basel
-*  @date   dec2015
-*/
+package ch.usb;
 
-import ij.*;
-import ij.process.*;
-import ij.gui.*;
-import java.awt.*;
-import ij.plugin.filter.*;
+/**
+ *  ImageJ Plugin to Semi-Automatically Segment Lung Tissue from CT Image Data
+ *
+ *  User identifies lung position in a few key slices and plugin finds the lung
+ *  in all slices.
+ *
+ *  Usage:
+ *  1. Load Lung data in ImageJ and save as a multi-slice .tif
+ *  2. Start with slice 1 and
+ *     Draw a ROI (any shape) which contains at lest 1 voxel of each lung in
+ *     all slices of data where lung is present but NO voxels of non-lung air
+ *     (GI track, sub-cutaneous emphysema, extra-corporal air)
+ *     Save ROI (File->SaveAs->Selection) in the same directory as the
+ *     .tif CT image file with the same filename, substituting the
+ *     .tif extension with .1.roi.
+ *  3. Scroll through consequitive slices confirming that the ROI can
+ *     identify both lungs while avoiding non-lung air.  When reaching
+ *     a slice for which the ROI is no longer adequate, draw a new
+ *     ROI and save it with the number of the first slice for which to
+ *     apply it.
+ *  4. Continue this process until all slices are covered.  If a slice
+ *     has no lung present, a ROI can contain only tissue, but no air.
+ *  5. In the end you will have the original image.tif and a set of .roi
+ *     files typically 1 per few dozen slices.
+ *  6. Now call this plugin.
+ *
+ *  Input:
+ *    Works only on 16bit Multi-slice ImagePlus images
+ *    Images must contain Calibration of CT density in Hounsfield Units (HU)
+ *    Standard DICOM's imported to ImageJ using the "File->importSequence"
+ *    command will normally have this calibration properly set automatically.
+ *    ROI files: must match name of original image, be in same directory,
+ *    only have extension with first slice number to which apply and .roi.
+ *
+ *  Output:
+ *    In-place modification of input image with voxels identified as "lung"
+ *    with their original value.  All other voxels set to bone/metal HU mask
+ *    for easy distinction in subsequent plugins which analyze lungs.
+ *
+ *  Segmentation Algorithm Overview:
+ *    1. Identify voxels within lung density HU range  (<380HU for example)
+ *       Since lung contains tissue and air voxels, this range also indentifies
+ *       non-lung intra/extra-corporal air spaces.
+ *    2. Eliminate extra-corporal air spaces based on continuity with outer boarder of image.
+ *
+ *
+ *  @author thomas.re@usb.ch  - University Hospital of Basel, Switzerland
+ *  @date    dec2016
+ *
+ */
+
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.gui.Roi;
 import ij.io.FileInfo;
+import ij.plugin.filter.PlugInFilter;
+import ij.plugin.filter.RankFilters;
+import ij.process.FloodFiller;
+import ij.process.ImageProcessor;
+
+import java.awt.*;
 
 public class COPD_SemiAutoLungSegment implements PlugInFilter {
   // Constants
@@ -68,7 +115,7 @@ public class COPD_SemiAutoLungSegment implements PlugInFilter {
       String roiURL= _impURL+"."+String.valueOf(sliceN)+".roi";
       if (fileExists(roiURL)) ij.IJ.open(roiURL);
       // otherwise continue using previous Roi
-      Roi userRoi = _imp.getRoi();  
+      Roi userRoi = _imp.getRoi();
       Rectangle r= new Rectangle(ip.getWidth(), ip.getHeight()); // image limits
     
       // FILTERING
@@ -116,32 +163,10 @@ public class COPD_SemiAutoLungSegment implements PlugInFilter {
 
   // "in-line" utilities
   public static boolean isLung(double HUval) { return inRange(HUval, MIN_HU_LUNG, MAX_HU_LUNG);} 
-  public static boolean isTissue(double HUval) { return inRange(HUval, MIN_HU_TISSUE, MAX_HU_TISSUE);} 
   public static boolean inRange(double val, double min, double max) { return (val>=min && val<=max);}
-  private static void DEBUG(String msg) {if (DEBUG) System.out.println(msg);}
   private static void DEBUG(String msg, java.lang.Object x) {if (DEBUG) System.out.println(msg+String.valueOf(x));}
 
   private static Boolean fileExists(String url) {return (new java.io.File(url)).exists();} 
 
-  /** tester */
-  public static void main(String[] args) {
-      try {
-        double v0, v2, v1;
-        v0= Double.valueOf(args[0]);
-        v1= Double.valueOf(args[1]);
-        v2= Double.valueOf(args[2]);
-        // test range 
-        System.out.println("inRange="+String.valueOf(inRange(v0, v1,v2)));
-        System.out.println("isLung="+String.valueOf(isLung(v0)));
-        System.out.println("isTissue="+String.valueOf(isTissue(v0))); 
-      }
-      catch (ArrayIndexOutOfBoundsException e) {
-        System.out.println("usage: ch.usb.COPD_SemiAutoLungSegment  val1 val2 val3");
-      }
-      catch (Exception e) {
-        System.out.println(e);
-      }
-
-  }
 
 }

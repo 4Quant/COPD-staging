@@ -1,18 +1,38 @@
 package ch.usb;
-/** ImageJ Plugin to Segment Lung Tissue from CT Image Data
-*  
-*  Uses adhoc algorithm  to identify lung:
-*  1. Eliminate extra-corporal solid (non-air) objects (CT table, bedding, random noise)
-*     by large radius noise-filtering and blurring.
-*  2. Threshold lung tissue and air (both inside and outside of body) to a LUNGLIKE_MASK 
-*     all else to NONLUNG_MASK.
-*  3. FloodFill extra-corporal LUNGLIKE_MASK (ie air) to EXTCORP_MASK.
-*  4. Consider Remaining LUNGLIKE_MASK voxels as true lung (an aprox.; airways, and corporal air GI) and
-*     Restore original voxel values only where LUNGLIKE_MASK is set - rest set as NONLUNG.
-*  
-*  @author drTJRE.com University Hospital of Basel
-*  @date   nov2015
-*/
+
+/**
+ *
+ *  ImageJ Plugin to Segment Lung Tissue from CT Image Data
+ *
+ *  Input:
+ *    Works only on 16bit Multi-slice ImagePlus images
+ *    Images must contain Calibration of CT density in Hounsfield Units (HU)
+ *    Standard DICOM's imported to ImageJ using the "File->importSequence"
+ *    command will normally have this calibration properly set automatically.
+ *
+ *  Output:
+ *    In-place modification of input image with voxels identified as "lung"
+ *    with their original value.  All other voxels set to bone/metal HU mask
+ *    for easy distinction in subsequent plugins which analyze lungs.
+ *
+ *  Segmentation Algorithm Overview:
+ *    1. Identify voxels within lung density HU range  (<380HU for example)
+ *       Since lung contains tissue and air voxels, this range also indentifies
+ *       non-lung intra/extra-corporal air spaces.
+ *    2. Eliminate extra-corporal air spaces based on continuity with outer boarder of image.
+ *
+ *  Limitations:
+ *    Air contained in Trachea, GI track, and even subcutaneous emphysema considered as lung.
+ *
+ *  Medical References:
+ *    http://www.ncbi.nlm.nih.gov/pubmed/18515044
+ *    http://www.ncbi.nlm.nih.gov/pubmed/19196813
+ *    http://www.ncbi.nlm.nih.gov/pubmed/22697325
+ *
+ *  @author thomas.re@usb.ch  - University Hospital of Basel, Switzerland
+ *  @date    jan2016
+ *
+ */
 
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -23,27 +43,30 @@ import ij.process.ImageProcessor;
 
 
 public class COPD_LungSegment implements PlugInFilter {
-  // Constants
-  static final String VERSION= "ch.usb.COPD_LungSegment version 0.41";
-  static final boolean VERBOSE= true;
-  static final boolean DEBUG= true;
-  public static final double MAX_HU_TISSUE= 2047.0;
-  public static final double MIN_HU_TISSUE= -200.0;
+
   public static final double MAX_HU_LUNG= -380.0;
   public static final double MIN_HU_LUNG= -1500.0;
+  public static final int BOARDER_WIDTH= 3;
 
-  static final int LUNGLIKE_MASK= 1024; // distinctive non-tissue value 
-  static final int NONLUNG_MASK= 4096; // set above bone with distinct number
-  static final int EXCORP_MASK= 2048; // set above bone with distinct number
+  // MASKS: Distinct bone/metal HU values used for temporarily taging voxels
+  static final int LUNGLIKE_MASK= 1024;
+  static final int NONLUNG_MASK= 4096;
+  static final int EXCORP_MASK= 2048;
+
+  // TODO: 26/01/16 have these settings passed as setup string
   static final double OUTLIER_PREFILTER_RADIUS= 5.0;
   static final double MEAN_PREFILTER_RADIUS= 5.0;
   static final boolean PREFILTER= true;
-    /**
-     * This is set during @link setup and used during @link run
-     */
+
+  /**
+   * image being processed - passed in setup
+   */
   ImagePlus _imp;
 
+  // TODO: 26/01/16 read arguments to set options
     /**
+     * Initialize plugin
+     * Accepts only 16bit Multi-slice images
      *
      * @param arg - parameter passing
      * @param imp - image to work on
@@ -51,7 +74,6 @@ public class COPD_LungSegment implements PlugInFilter {
      */
   public int setup(String arg, ImagePlus imp) {
     this._imp = imp;
-    if (VERBOSE) System.out.println(VERSION);
     return DOES_16+STACK_REQUIRED;
   }
 
@@ -66,7 +88,20 @@ public class COPD_LungSegment implements PlugInFilter {
      *  5. Restore original voxel values only where LUNGLIKE_MASK is set - rest set as NONLUNG.
      * @param ip (NOT USED)
      */
-  public void run(ImageProcessor ip) {
+
+
+    /**
+     * Perform segmentation
+     * 1. Eliminate extra-corporal thin items such as bedding using pre-filtering.
+     * 2. Identify lung-like voxels based on density (HU range)
+     * 3. Eliminate extra-corporal spaces based on continuity with outer boarders.
+     *
+     * results: original image non-lung voxels replaced with "metal" density mask.
+     *          lung voxels left as original.
+     *
+     * @param ip - ImageProcessor of input image to process
+     */
+    public void run(ImageProcessor ip) {
     ImageStack istack= _imp.getStack();
     int numOfSlices= istack.getSize();
     double val; int ival;
@@ -79,7 +114,7 @@ public class COPD_LungSegment implements PlugInFilter {
 
       // FILTERING
       // First filter image to eliminate extra-corporal outliers
-      // which might be mistaken as tissue (bedding, table, specks):
+      // which might be mistaken as non-lung tissue (bedding, table, noise):
       if (PREFILTER) {
         RankFilters rf= new RankFilters();
         rf.rank(ips, OUTLIER_PREFILTER_RADIUS, RankFilters.OUTLIERS, 0, (float)50.0);
@@ -87,8 +122,7 @@ public class COPD_LungSegment implements PlugInFilter {
       }
 
 
-      // Threshold lung - result will include lung and extra-corporal air
-      // will provide solid regions for facilitating next flood-fill step.
+      // Identify voxels in lung density range
       for (int x=0; x<width; x++) {
         for (int y=0; y<height; y++) {
           val= ips.getPixelValue(x,y);
@@ -96,23 +130,26 @@ public class COPD_LungSegment implements PlugInFilter {
           else ips.putPixel(x,y,NONLUNG_MASK);
         }
       }
-      // Flood Fill extra-corporal touching image outer edge with a NON Lung mask
+
+      // Tag as non-lung extra-corporal spaces of lung density
+      // but continuous with outer boarders of image
       ips.setValue(EXCORP_MASK);
       FloodFiller floodFiller= new FloodFiller(ips);
-      int boarderWidth= 3;
-      for (int ie=0;ie<boarderWidth;ie++) {
+      for (int ie=0;ie<BOARDER_WIDTH;ie++) {
           int xleft = ie, xright = width - 1-ie;
           int ytop = ie, ybottom = height - 1-ie;
-          for (int x = 0; x < width; x++) {  // walk top end bottom edges
+          for (int x = 0; x < width; x++) {
               if (ips.getPixel(x, ytop) == LUNGLIKE_MASK) floodFiller.fill(x, ytop);
               if (ips.getPixel(x, ybottom) == LUNGLIKE_MASK) floodFiller.fill(x, ybottom);
           }
-          for (int y = 0; y < height; y++) {  // walk sides
+          for (int y = 0; y < height; y++) {
               if (ips.getPixel(xleft, y) == LUNGLIKE_MASK) floodFiller.fill(xleft, y);
               if (ips.getPixel(xright, ybottom) == LUNGLIKE_MASK) floodFiller.fill(xright, y);
           }
       }
-      // Restore Original Data ONLY in surviving LUNGLIKE_MASKed
+
+      // Restore Original voxel values only in remaining voxels previously
+      // identified as having lung density.
       for (int x=0; x<width; x++) {
         for (int y=0; y<height; y++) {
           ival= ips.getPixel(x,y);
@@ -125,12 +162,15 @@ public class COPD_LungSegment implements PlugInFilter {
   }
 
 
-  // "in-line" utilities
-  public static boolean isLung(double HUval) { return inRange(HUval, MIN_HU_LUNG, MAX_HU_LUNG);} 
-  public static boolean isTissue(double HUval) { return inRange(HUval, MIN_HU_TISSUE, MAX_HU_TISSUE);} 
-  public static boolean inRange(double val, double min, double max) { return (val>=min && val<=max);}
-  private static void DEBUG(String msg) {if (VERBOSE) System.out.println(msg);}
-  private static void DEBUG(String msg, java.lang.Object x) {if (VERBOSE) System.out.println(msg+String.valueOf(x));}
+  // utilities
+
+  /**
+   * utility to check if a Hounsfeld Unit is within lung density.
+   *
+   * @param HUval Hounsfeld Unit value to check
+   * @return true if within lung density range
+     */
+  public static boolean isLung(double HUval) { return (HUval>=MIN_HU_LUNG && HUval<=MAX_HU_LUNG);}
 
 
 }
