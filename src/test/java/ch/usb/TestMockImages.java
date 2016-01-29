@@ -31,6 +31,7 @@ public class TestMockImages {
     static final String MOCK07="/mockCTs/07AddNoise26095_13345.tif";
     static final String MOCK08="/mockCTs/08AddBedding36603_13345.tif";
     static final String MOCK09="/mockCTs/09AddSupport32464_13345.tif";
+    static final String MOCK0A="/mockCTs/0Aopenlung.tif";
     static final long[] MOCK01_LUNGVOL= {10000, 10000}; // expected values before and after segmentation
     static final long[] MOCK02_LUNGVOL= {9522, 9522};
     static final long[] MOCK03_LUNGVOL= {12658, 12658};
@@ -40,6 +41,7 @@ public class TestMockImages {
     static final long[] MOCK07_LUNGVOL= {26095, 13345};
     static final long[] MOCK08_LUNGVOL= {36603, 13345};
     static final long[] MOCK09_LUNGVOL= {32464, 13345};
+    static final long[] MOCK0A_LUNGVOL= {32464, 13345};
     static final int[] MOCK01_PD= {15, -1008, 20, -1003, 30, -993}; // expected values of PDs
     static final int[] MOCK00_LAA= {-1023, 10, -1022,20, -1021,30}; // thresholds and expected LAAs
     static final int[] MOCK01_LAA= {-1023, 100, -950,7400, -900,10000}; // thresholds and expected LAAs
@@ -188,6 +190,12 @@ public class TestMockImages {
     public void testMock09PostSegmentation() {
         _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT:");
         testSegmentation(MOCK09, MOCK09_LUNGVOL[1]);
+    }
+
+    @Test
+    public void testMock0APreSegmentation() {
+            _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT:");
+        checkCTLungVoxelCount(MOCK0A,MOCK0A_LUNGVOL[0]);
     }
 
     @Test

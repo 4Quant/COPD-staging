@@ -65,6 +65,9 @@ public class COPD_PDxLAAx implements PlugInFilter {
      */
     CTVoxelBox _lungDataBox;
 
+    protected long _fovVoxelCount; // total voxels in image
+    public long getFOVVoxelCount() {return _fovVoxelCount;}
+
     /**
      * Low Attenuation limits to calculate
      */
@@ -153,6 +156,7 @@ public class COPD_PDxLAAx implements PlugInFilter {
       for (int x=0; x<(width); x++) {
         for (int y=0; y<(height); y++) {
           val= ips.getPixelValue(x,y);
+            _fovVoxelCount++;
 	      if (isLung(val)) _lungDataBox.add((int)Math.round(val));
         }
       }
@@ -178,6 +182,7 @@ public class COPD_PDxLAAx implements PlugInFilter {
     int lungVolume= (int)Math.round(lungVoxels*_voxelVolume);
     String studyTag= _imp.getShortTitle();
     rt.addValue("StudyID", studyTag);
+    rt.addValue("FOV voxels ", getFOVVoxelCount());
     rt.addValue("sex", getSexFromDicomHeader());  // used in normilization
     rt.addValue("vox volume "+_volumeUnits, _voxelVolume);
     rt.addValue("LungVol voxs", lungVoxels);
