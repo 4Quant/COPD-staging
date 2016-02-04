@@ -34,6 +34,7 @@ package ch.usb;
  *
  */
 
+import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.plugin.filter.PlugInFilter;
@@ -44,6 +45,7 @@ import ij.process.ImageProcessor;
 
 public class COPD_LungSegment implements PlugInFilter {
 
+    public static final String STATUSBAR_TITLE= "COPD_LungSegment";
   public static final double MAX_HU_LUNG= -380.0;
   public static final double MIN_HU_LUNG= -1500.0;
   public static final int BOARDER_WIDTH= 3;
@@ -102,24 +104,26 @@ public class COPD_LungSegment implements PlugInFilter {
      * @param ip - ImageProcessor of input image to process
      */
     public void run(ImageProcessor ip) {
-    ImageStack istack= _imp.getStack();
-    int numOfSlices= istack.getSize();
-    double val; int ival;
-    for (int sliceN=1;sliceN<=numOfSlices;sliceN++) {
-      ImageProcessor ips= istack.getProcessor(sliceN); // process one slice at a time
-      int[][] unfilteredVoxData= ips.getIntArray(); // original voxel data
+      IJ.showStatus(STATUSBAR_TITLE+":"+_imp.getTitle());
+      ImageStack istack= _imp.getStack();
+      int numOfSlices= istack.getSize();
+      double val; int ival;
+      for (int sliceN=1;sliceN<=numOfSlices;sliceN++) {
+        IJ.showProgress(sliceN, numOfSlices);
+        ImageProcessor ips= istack.getProcessor(sliceN); // process one slice at a time
+        int[][] unfilteredVoxData= ips.getIntArray(); // original voxel data
 
-      int width= _imp.getWidth();
-      int height= _imp.getHeight();
+        int width= _imp.getWidth();
+        int height= _imp.getHeight();
 
-      // FILTERING
-      // First filter image to eliminate extra-corporal outliers
-      // which might be mistaken as non-lung tissue (bedding, table, noise):
-      if (PREFILTER) {
-        RankFilters rf= new RankFilters();
-        rf.rank(ips, OUTLIER_PREFILTER_RADIUS, RankFilters.OUTLIERS, 0, (float)50.0);
-        rf.rank(ips, MEAN_PREFILTER_RADIUS, RankFilters.MEAN);
-      }
+        // FILTERING
+        // First filter image to eliminate extra-corporal outliers
+        // which might be mistaken as non-lung tissue (bedding, table, noise):
+        if (PREFILTER) {
+          RankFilters rf= new RankFilters();
+          rf.rank(ips, OUTLIER_PREFILTER_RADIUS, RankFilters.OUTLIERS, 0, (float)50.0);
+          rf.rank(ips, MEAN_PREFILTER_RADIUS, RankFilters.MEAN);
+        }
 
 
       // Identify voxels in lung density range

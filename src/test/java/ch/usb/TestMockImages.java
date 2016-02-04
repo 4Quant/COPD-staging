@@ -54,6 +54,14 @@ public class TestMockImages {
         else ImageJ.main("".split(" "));
     }
 
+    /**
+     * test of FOV voxel count
+     */
+    @Test
+    public void testMock01FOV() {
+
+        checkCTFOVVoxelCount(MOCK01);
+    }
 
     /**
      * test all mock lung files before segmentation
@@ -273,6 +281,23 @@ public class TestMockImages {
                 expectedVoxCount*_tolerance);
     }
 
+    /**
+     * check that the FOV voxel numer matches image dimensions
+     * @param mockCTPath  image to check
+     */
+    public void checkCTFOVVoxelCount(String mockCTPath)  {
+        IJ.open(TestBasicImageJ.class.getResource(mockCTPath).getPath());
+        ImagePlus imp = IJ.getImage();
+        // Check Voxel count is as expected before segmentation
+        long expectedFovVoxels= imp.getWidth()*imp.getHeight()*imp.getStackSize();
+        COPD_PDxLAAx pdPlug= new COPD_PDxLAAx();
+        pdPlug.setup("", imp);
+        pdPlug.run(imp.getProcessor());
+        long givenFovVoxels= pdPlug.getFOVVoxelCount();
+        System.out.println("FOV test expected,given="+expectedFovVoxels+","+givenFovVoxels);
+        assertEquals(mockCTPath+" FOV voxels Count not value expected ", expectedFovVoxels,
+                givenFovVoxels);
+    }
     /**
      * display an image via imagej and wait for user to respond.
      * Intended for visual feedback during testing and must be disabled

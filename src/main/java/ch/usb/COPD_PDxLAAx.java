@@ -45,7 +45,7 @@ public class COPD_PDxLAAx implements PlugInFilter {
   static final int MAX_HU_LUNG= -380;
   static final int MIN_HU_LUNG= -1500;
 
-    static final boolean headless= true;
+    static final boolean headless= false;
 
   static final int RESULTS_PRECISION= 3; // decimal places to display in ResultsTable
 
@@ -71,11 +71,11 @@ public class COPD_PDxLAAx implements PlugInFilter {
     /**
      * Low Attenuation limits to calculate
      */
-  protected int[] _laas= {-1024, -950, -900};
+  protected int[] _laas= {-950, -900, -850};
     /**
      * Percentile Density percentiles to calculate (may be multiple)
      */
-  protected int[] _pds= {15}; // percentile densities to calculate
+  protected int[] _pds= {5,15,25}; // percentile densities to calculate
 
     /**
      * real world voxel volume as determined from image header
@@ -182,11 +182,11 @@ public class COPD_PDxLAAx implements PlugInFilter {
     int lungVolume= (int)Math.round(lungVoxels*_voxelVolume);
     String studyTag= _imp.getShortTitle();
     rt.addValue("StudyID", studyTag);
-    rt.addValue("FOV voxels ", getFOVVoxelCount());
+    // rt.addValue("FOV voxels ", getFOVVoxelCount());
     rt.addValue("sex", getSexFromDicomHeader());  // used in normilization
-    rt.addValue("vox volume "+_volumeUnits, _voxelVolume);
-    rt.addValue("LungVol voxs", lungVoxels);
-    rt.addValue("LungVol "+_volumeUnits, lungVolume);
+    // rt.addValue("vox volume "+_volumeUnits, _voxelVolume);
+    // rt.addValue("LungVol voxs", lungVoxels);
+    // rt.addValue("LungVol "+_volumeUnits, lungVolume);
     if (_volumeUnits.equals("mm^3")) 
       rt.addValue("LungVol (Liters)", Math.round(lungVolume/1000.0)/1000.0);
 
@@ -210,7 +210,7 @@ public class COPD_PDxLAAx implements PlugInFilter {
       rt.addValue(tag, perc);
     }
 
-    if (!headless) rt.show("PD Results");
+    if (!headless) rt.show("COPD Quantitative Results");
   }
 
     /**

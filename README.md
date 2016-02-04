@@ -6,13 +6,14 @@ To produce a jar file, you need to have maven installed on your machine and you 
 mvn package
 ```
 
-which will produce a number of files in the ```target/``` directory. The ```dwi-dkfz-ij-0.1-SNAPSHOT.jar``` can be used as an ImageJ/FIJI plugin.
+which will produce a number of files in the ```target/``` directory. The ```-SNAPSHOT.jar```
+can be used as an ImageJ/FIJI plugin.
 
 ## Overview
 
-Chronic-Obstructive-Pulmonary-Disease (COPD in English or BPCO in Italian) is a chronic disorder which effects millions
+Chronic-Obstructive-Pulmonary-Disease (COPD) is a chronic disorder which effects millions
 of individuals world wide.  It is typically, although not exclusively, a disease of older adults and is primarily
-attributed to chronic exposure to lung irritating substances contained in cigarette smoke and air pollution.
+attributed to chronic exposure to lung damaging substances contained in cigarette smoke and air pollution.
 One technique for measuring the extent of lung damage in COPD is via quantitative values calculated from Computer
 Tomography (CT) imaging of patients.
 Two particularly established quantities are: PD15 and LAA-950 (see paper for details).[Dirksen et al., Exploring the
