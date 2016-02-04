@@ -19,6 +19,7 @@ public class TestMockImages {
 
     private final double POSTSEG_TOLERANCE= 0.1;
     private final double PRESEG_TOLERANCE= 0.0;
+    private final double PD_TOLERANCE= 0.01;
     public static final boolean headless = false;
     public static final boolean NON_STOP = false; // do not wait for user to see results
     static final String MOCK00="/mockCTs/00SquareLung10by10.tif";
@@ -41,7 +42,7 @@ public class TestMockImages {
     static final long[] MOCK07_LUNGVOL= {26095, 13345};
     static final long[] MOCK08_LUNGVOL= {36603, 13345};
     static final long[] MOCK09_LUNGVOL= {32464, 13345};
-    static final long[] MOCK0A_LUNGVOL= {32464, 13345};
+    static final long[] MOCK0A_LUNGVOL= {33439, 15708};
     static final int[] MOCK01_PD= {15, -1008, 20, -1003, 30, -993}; // expected values of PDs
     static final int[] MOCK00_LAA= {-1023, 10, -1022,20, -1021,30}; // thresholds and expected LAAs
     static final int[] MOCK01_LAA= {-1023, 100, -950,7400, -900,10000}; // thresholds and expected LAAs
@@ -83,20 +84,20 @@ public class TestMockImages {
 
     @Test
     public void testMock01PD1() {
-        _tolerance= POSTSEG_TOLERANCE;
+        _tolerance= PD_TOLERANCE;
         testPD(MOCK01, MOCK01_PD[0], MOCK01_PD[1]);
     }
 
 
     @Test
     public void testMock01PD2() {
-        _tolerance= POSTSEG_TOLERANCE;
+        _tolerance= PD_TOLERANCE;
         testPD(MOCK01, MOCK01_PD[2], MOCK01_PD[3]);
     }
 
     @Test
     public void testMock01PD3() {
-        _tolerance= POSTSEG_TOLERANCE;
+        _tolerance= PD_TOLERANCE;
         testPD(MOCK01, MOCK01_PD[4], MOCK01_PD[5]);
     }
 
@@ -149,6 +150,7 @@ public class TestMockImages {
     }
 
 
+    @Ignore
     @Test
     public void testMock01LAA() {
         _tolerance= POSTSEG_TOLERANCE;
@@ -204,6 +206,13 @@ public class TestMockImages {
     public void testMock0APreSegmentation() {
             _tolerance= PRESEG_TOLERANCE;System.out.print("PRE-SEGMENT:");
         checkCTLungVoxelCount(MOCK0A,MOCK0A_LUNGVOL[0]);
+    }
+
+    @Test
+    public void testMock0APostSegmentation() {
+        _tolerance= POSTSEG_TOLERANCE;System.out.print("POST-SEGMENT:");
+        testSegmentation(MOCK0A, MOCK0A_LUNGVOL[1]);
+        // showAndWait("next",IJ.getImage());
     }
 
     @Test
@@ -353,7 +362,12 @@ public class TestMockImages {
         pdPlug.setup("", imp);
         pdPlug.run(imp.getProcessor());
         int val= pdPlug.getPD(percentile);
-        assertEquals(CTPath+":PD"+String.valueOf(percentile)+" calculated does not match expected", expectedPD15, val);
+        double tol= -_tolerance*expectedPD15;
+        assertEquals(CTPath+":PD"+String.valueOf(percentile)+" calculated does not match expected even with tolerance"
+                +String.valueOf(tol),
+                expectedPD15,
+                val, tol);
+
 
     }
 
