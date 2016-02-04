@@ -150,7 +150,6 @@ public class TestMockImages {
     }
 
 
-    @Ignore
     @Test
     public void testMock01LAA() {
         _tolerance= POSTSEG_TOLERANCE;
